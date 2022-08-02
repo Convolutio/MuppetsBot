@@ -3,15 +3,15 @@ import { clientId, guildId, token } from "../config.json";
 import fs from "node:fs";
 import path from "node:path";
 import { Routes, SlashCommandBuilder } from "discord.js";
-import { CommandType } from "../models/command.type";
+import { MyCommandType } from "../models/command.type";
 
 const commands = [];
-const commandsPath = path.join(__dirname, 'commands');
+const commandsPath = path.join(__dirname, '..', 'commands');
 const commandsFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".ts"));
 
 for (const file of commandsFiles) {
     const filePath = path.join(commandsPath, file);
-    const command:CommandType = require(filePath);
+    const command:MyCommandType = require(filePath);
     commands.push(command.data.toJSON());
 }
 

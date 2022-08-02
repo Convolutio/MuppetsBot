@@ -2,6 +2,24 @@
 
 It is a Discord BOT for a special guild. Features will come with inspiration.
 
+## Config
+
+You must create a webhook in your server.
+You must then create a `config.json` file following this schema:
+
+```json
+{
+    "token":"<Your bot token>",
+    "clientId":"<Your application id>",
+    "guildId":"<The id of the single guild where the bot will run>",
+    "commandToDelete_id":"", //Let "" if you don't need it
+    "webhook": {
+        "id":"<webhook's id>",
+        "token":"<webhook's token>"
+    }
+}
+```
+
 ## ts-node
 
 ### Run the bot
