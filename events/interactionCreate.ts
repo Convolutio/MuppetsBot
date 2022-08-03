@@ -1,4 +1,4 @@
-import { Interaction, Collection } from "discord.js";
+import { Interaction, Collection, ChatInputCommandInteraction } from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
 import { MyCommandType } from "../models/command.type";
@@ -19,14 +19,19 @@ const event : MyEventType = {
     name:"interactionCreate",
     async execute(interaction:Interaction) {
         //Run just slash commands
-        if (!interaction.isChatInputCommand()) return;
+        if (!(
+            interaction.isChatInputCommand()
+            ||interaction.isAutocomplete()
+            )) return;
         const command = commands.get(interaction.commandName);
         if(!command) return;
         try {
             await command.execute(interaction);
         } catch(error) {
             console.error(error);
-            await interaction.reply({ content: `An error has occured when executing this command.`, ephemeral:true});
+            if (interaction.isChatInputCommand()) {
+                await interaction.reply({ content: `An error has occured when executing this command.`, ephemeral:true});
+            }
         }
     }
 }

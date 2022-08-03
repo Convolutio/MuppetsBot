@@ -1,12 +1,9 @@
-import { ChatInputCommandInteraction, Interaction, SlashCommandBuilder } from 'discord.js'
-
-type commandExecution = ((interaction:Interaction)=>Promise<void>)
-| ((interaction:ChatInputCommandInteraction)=>Promise<void>)
+import { AutocompleteInteraction, ChatInputCommandInteraction, Interaction, SlashCommandBuilder } from 'discord.js'
 
 type slashCommand = SlashCommandBuilder
     | Omit<SlashCommandBuilder, 'addSubcommand'|'addSubcommandGroup'>;
 
 export interface MyCommandType {
     data:slashCommand;
-    execute: commandExecution
+    execute: ((interaction:any)=>Promise<void>)
 }
