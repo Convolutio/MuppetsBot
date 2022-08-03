@@ -7,7 +7,7 @@ export class CharacterService {
             name:"Gérard Depardieu",
             avatar:'https://m.media-amazon.com/images/M/MV5BZGZlNjQ0NjMtZjdlMi00NzdmLThjN2QtMTNlMDc0NDVkNDBiXkEyXkFqcGdeQXVyNjgxMTQ3MTY@._V1_.jpg',
             quotes:[
-                "Ça se bouffe, ça 🐼 ?",
+                "Ça se bouffe, ça ?\n https://tenor.com/view/seal-running-away-cute-weird-animal-gif-17851078",
                 "J'aime le cidre des paysans, ce qu'on nomme le \"tord-boyaux\", et qui file la chiasse à chaque fois."
             ]
         },
