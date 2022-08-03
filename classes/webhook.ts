@@ -2,6 +2,7 @@ import { Client, TextChannel, Webhook } from 'discord.js';
 import fs from 'node:fs';
 import configs from '../config.json';
 import { Character } from '../models/character';
+import { CharacterService } from './characterService';
 
 function editWHKConfigs (whk:{id:string; token:string}) {
     const content = configs;
@@ -10,22 +11,21 @@ function editWHKConfigs (whk:{id:string; token:string}) {
 }
 
 export class MyWebhook {
+    //Please use init asynchronous method to init the webhook;
     private webhook!:Webhook;
     private currentCharacter!:Character;
 
-    constructor(client:Client) {
+    constructor() {
+    }
+
+    async init(client:Client):Promise<void> {
         if (configs.webhook.id && configs.webhook.token) {
-            client.fetchWebhook(configs.webhook.id, configs.webhook.token)
-                .then(whk => {
-                    this.webhook = whk;
-                    this.currentCharacter = {
-                        name:whk.name,
-                        avatar:whk.avatar
-                    }
-                })
-                .catch(error => console.error(error))
+            const whk = await client.fetchWebhook(configs.webhook.id, configs.webhook.token);
+            this.webhook = whk;
+            const character = await (new CharacterService()).getCharacterWithName(whk.name);
+            character? this.currentCharacter=character : this.currentCharacter={name:whk.name, avatar:whk.avatar}
         } else {
-            console.error("You must specify webhook's data in 'config.json' file.")
+            throw "You must specify webhook's data in 'config.json' file."
         }
     }
     private async changeChannel(channel:TextChannel) {
@@ -58,7 +58,7 @@ export class MyWebhook {
             }
             await this.webhook.send(message);
         } catch(error) {
-            console.error(error);
+            throw error;
         }
     }
 }

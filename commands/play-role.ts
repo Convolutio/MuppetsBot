@@ -28,7 +28,6 @@ const command : MyCommandType = {
             if (focusedOption.name==="personnage"){
                 choices = await charService.getCharactersName();
             } else if (focusedOption.name=="réplique") {
-                console.log(interaction.options.data);
                 const charName = interaction.options.getString("personnage");
                 if (charName) {
                     const selectedChar = await charService.getCharacterWithName(charName);
@@ -48,11 +47,21 @@ const command : MyCommandType = {
             const charName = interaction.options.getString('personnage');
             const quote = interaction.options.getString("réplique");
             if (quote && charName) {
+                await interaction.deferReply({ephemeral:true});
                 const selectedChar = await charService.getCharacterWithName(charName);
                 if (selectedChar) {
-                    const webhook = new MyWebhook(interaction.client);
+                    const webhook = new MyWebhook();
+                    await webhook.init(interaction.client);
                     const channel = await interaction.channel?.fetch();
-                    (channel instanceof TextChannel)?await webhook.speak(quote, selectedChar, channel):{};
+                    if (channel instanceof TextChannel) {
+                        try {
+                            await webhook.speak(quote, selectedChar, channel);
+                            await interaction.editReply({content:"Fait :+1:"});
+                        } catch(err) {
+                            await interaction.editReply({content:`An error has occured with the webhook :\`${err}\`.`})
+                        }
+                        
+                    };
                 }
             }
         }
