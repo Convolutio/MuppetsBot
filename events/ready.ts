@@ -1,10 +1,12 @@
-import { MyEventType } from "../models/event.type";
+import MyEventBuilder from "../models/event.type";
 
-const event : MyEventType = {
-    name:'ready',
-    once:true,
-    execute() {
-        console.log("Ready !")
+const event : MyEventBuilder = async() => {
+    return {
+        name:'ready',
+        once:true,
+        execute() {
+            console.log("Ready !")
+        }
     }
 }
 

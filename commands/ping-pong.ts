@@ -2,9 +2,12 @@ import { ChatInputCommandInteraction, Interaction, SlashCommandBuilder } from "d
 import { MyCommandType } from '../models/command.type';
 
 const command : MyCommandType = {
-    data: new SlashCommandBuilder()
+    buildData: async()=>{
+        return new SlashCommandBuilder()
         .setName("ping")
-        .setDescription('Replies with pong.'),
+        .setDescription('Replies with pong.')
+    },
+
     async execute(interaction:ChatInputCommandInteraction) {
         await interaction.reply({content:"Pong", ephemeral:true});
     }

@@ -1,68 +1,76 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, InteractionType, SlashCommandBuilder, TextChannel } from "discord.js";
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, InteractionType, SelectMenuBuilder, SelectMenuInteraction, SlashCommandBuilder, TextChannel } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
 import { MyCommandType } from "../models/command.type";
 import { CharacterService } from '../classes/characterService';
 import { Character } from "../models/character";
 
+
 const command : MyCommandType = {
-    data : new SlashCommandBuilder()
+    buildData : (async () => {
+        const options = (await (new CharacterService()).getCharactersName()).map(
+            name => ({name:name, value:name})
+        );
+        return new SlashCommandBuilder()
         .setName('faire_parler')
         .setDescription('Fait parler le personnage sélectionné avec la citation demandée.')
         .addStringOption(option =>
             option.setName("personnage")
                 .setDescription("Entrez le nom du personnage qui doit parler.")
                 .setRequired(true)
-                .setAutocomplete(true)
+                .addChoices(...options)
             )
-        .addStringOption(option =>
-            option.setName("réplique")
-                .setDescription("Entrez la phrase que vous souhaitez faire dire.")
-                .setRequired(true)
-                .setAutocomplete(true)),
+    }),
         
-    async execute(interaction:AutocompleteInteraction|ChatInputCommandInteraction) {
+    async execute(interaction:ChatInputCommandInteraction) {
         const charService = new CharacterService();
-        if (interaction.type===InteractionType.ApplicationCommandAutocomplete) {
-            let choices:string[]=[];
-            const focusedOption = interaction.options.getFocused(true);
-            if (focusedOption.name==="personnage"){
-                choices = await charService.getCharactersName();
-            } else if (focusedOption.name=="réplique") {
-                const charName = interaction.options.getString("personnage");
-                if (charName) {
-                    const selectedChar = await charService.getCharacterWithName(charName);
-                    if (selectedChar) {
-                        choices = selectedChar.quotes||[];
-                        choices.push("Custom Message");
+        //The command has been submitted.
+        //await interaction.deferReply({ephemeral:true});
+        const charName = interaction.options.getString('personnage');
+        if (charName) {
+            const selectedChar = await charService.getCharacterWithName(charName);
+            if (selectedChar) {
+                const quotes = selectedChar.quotes;
+                const rows= [
+                    new ActionRowBuilder<SelectMenuBuilder>()
+                        .addComponents(
+                            new SelectMenuBuilder()
+                                .setCustomId("1")
+                                .setPlaceholder("Sélectionnez la réplique pré-enregistrée.")
+                                .addOptions(quotes?quotes.map(
+                                    quote => {
+                                        const label :string=quote; 
+                                        return {
+                                            label:label,
+                                            value:quote
+                                        }
+                                    }
+                                ):[])
+                        ),
+                    new ActionRowBuilder<ButtonBuilder>()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setCustomId("2")
+                                .setLabel("Personnaliser")
+                                .setStyle(ButtonStyle.Primary)
+                        ),
+                ];
+                await interaction.reply({content:'Choisissez une réplique', components:rows});
+                /*
+                const webhook = new MyWebhook();
+                await webhook.init(interaction.client);
+                const channel = await interaction.channel?.fetch();
+                if (channel instanceof TextChannel) {
+                    try {
+                        await webhook.speak(quote, selectedChar, channel);
+                        await interaction.editReply({content:"Fait :+1:"});
+                    } catch(err) {
+                        await interaction.editReply({content:`An error has occured with the webhook :\`${err}\`.`})
                     }
-                }
-            } else {return;}
-            const filtered = choices.filter(choice => 
-                choice.toLocaleUpperCase().includes(focusedOption.value.toLocaleUpperCase())
-                );
-            await interaction.respond(
-                filtered.map(choice => ({name:choice, value:choice})),
-            );
-        } else {
-            const charName = interaction.options.getString('personnage');
-            const quote = interaction.options.getString("réplique");
-            if (quote && charName) {
-                await interaction.deferReply({ephemeral:true});
-                const selectedChar = await charService.getCharacterWithName(charName);
-                if (selectedChar) {
-                    const webhook = new MyWebhook();
-                    await webhook.init(interaction.client);
-                    const channel = await interaction.channel?.fetch();
-                    if (channel instanceof TextChannel) {
-                        try {
-                            await webhook.speak(quote, selectedChar, channel);
-                            await interaction.editReply({content:"Fait :+1:"});
-                        } catch(err) {
-                            await interaction.editReply({content:`An error has occured with the webhook :\`${err}\`.`})
-                        }
-                        
-                    };
-                }
+                    
+                };
+                */
+            } else {
+                await interaction.editReply('Le personnage entré n\'est pas enregistré.')
             }
         }
     }

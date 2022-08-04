@@ -4,6 +4,6 @@ type slashCommand = SlashCommandBuilder
     | Omit<SlashCommandBuilder, 'addSubcommand'|'addSubcommandGroup'>;
 
 export interface MyCommandType {
-    data:slashCommand;
+    buildData:(()=>Promise<slashCommand>);
     execute: ((interaction:any)=>Promise<void>)
 }
