@@ -1,8 +1,9 @@
-import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, InteractionType, SelectMenuBuilder, SelectMenuInteraction, SlashCommandBuilder, TextChannel } from "discord.js";
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, InteractionType, SelectMenuBuilder, SelectMenuInteraction, SlashCommandBuilder, TextChannel } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
 import { MyCommandType } from "../models/command.type";
 import { CharacterService } from '../classes/characterService';
 import { Character } from "../models/character";
+import { setTimeout } from "node:timers";
 
 
 const command : MyCommandType = {
@@ -24,7 +25,7 @@ const command : MyCommandType = {
     async execute(interaction:ChatInputCommandInteraction) {
         const charService = new CharacterService();
         //The command has been submitted.
-        //await interaction.deferReply({ephemeral:true});
+        await interaction.deferReply({ephemeral:true});
         const charName = interaction.options.getString('personnage');
         if (charName) {
             const selectedChar = await charService.getCharacterWithName(charName);
@@ -38,7 +39,7 @@ const command : MyCommandType = {
                                 .setPlaceholder("Sélectionnez la réplique pré-enregistrée.")
                                 .addOptions(quotes?quotes.map(
                                     quote => {
-                                        const label :string=quote; 
+                                        const label:string=quote.length>50?quote.slice(0,47)+'...':quote; 
                                         return {
                                             label:label,
                                             value:quote
@@ -54,20 +55,25 @@ const command : MyCommandType = {
                                 .setStyle(ButtonStyle.Primary)
                         ),
                 ];
-                await interaction.reply({content:'Choisissez une réplique', components:rows});
+                const msg = await interaction.editReply({content:'Choisissez une réplique', components:rows});
+                const menuCollector = msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000});
+                const ButtonCollector = msg.createMessageComponentCollector({componentType:ComponentType.Button, time:15000});
+                menuCollector.on('collect', async i => {
+                    await i.update({content:"En attente du webhook...", components:[]});
+                    const webhook = new MyWebhook();
+                    await webhook.init(i.client);
+                    const channel = await i.channel?.fetch();
+                    if (channel instanceof TextChannel) {
+                        try {
+                            await webhook.speak(i.values[0], selectedChar, channel);
+                            await i.editReply({content:"Fait :+1:", components:[]});
+                        } catch(err) {
+                            await i.editReply({content:`An error has occured with the webhook :\`${err}\`.`})
+                        }
+                    };
+                })
                 /*
-                const webhook = new MyWebhook();
-                await webhook.init(interaction.client);
-                const channel = await interaction.channel?.fetch();
-                if (channel instanceof TextChannel) {
-                    try {
-                        await webhook.speak(quote, selectedChar, channel);
-                        await interaction.editReply({content:"Fait :+1:"});
-                    } catch(err) {
-                        await interaction.editReply({content:`An error has occured with the webhook :\`${err}\`.`})
-                    }
-                    
-                };
+                
                 */
             } else {
                 await interaction.editReply('Le personnage entré n\'est pas enregistré.')
