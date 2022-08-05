@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Interaction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { MyCommandType } from '../models/command.type';
 
 const command : MyCommandType = {

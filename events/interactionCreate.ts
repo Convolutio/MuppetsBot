@@ -19,10 +19,7 @@ const buildEvent : MyEventBuilder = async () => {
         name:"interactionCreate",
         async execute(interaction:Interaction) {
             //Run just slash commands
-            if (!(
-                interaction.isChatInputCommand()
-                ||interaction.isAutocomplete()
-                )) return;
+            if (!interaction.isChatInputCommand()) return;
             const command = commands.get(interaction.commandName);
             if(!command) return;
             try {

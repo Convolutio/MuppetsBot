@@ -1,64 +1,52 @@
-import { Client, TextChannel, Webhook } from 'discord.js';
-import fs from 'node:fs';
-import configs from '../config.json';
+import { BufferResolvable, Client, TextChannel, Webhook } from 'discord.js';
 import { Character } from '../models/character';
 import { CharacterService } from './characterService';
-
-function editWHKConfigs (whk:{id:string; token:string}) {
-    const content = configs;
-    content.webhook = whk;
-    fs.writeFileSync('../config.json', JSON.stringify(content));
-}
 
 export class MyWebhook {
     //Please use init asynchronous method to init the webhook;
     private webhook!:Webhook;
+    private characterService=new CharacterService();
     private currentCharacter!:Character;
+    private isInitiated=false;
 
-    constructor() {
+    async init(client:Client, characterName:string):Promise<void> {
+        //Init the MyWebhook instance corresponding to the specified character.
+        this.currentCharacter=await this.characterService.getCharacterWithName(characterName);
+        this.webhook=await client.fetchWebhook(this.currentCharacter.webhook_data.id, this.currentCharacter.webhook_data.token);
+        if (this.webhook.name!==this.currentCharacter.name) {
+            await this.editWebhook(this.currentCharacter);
+        }
+        this.isInitiated=true;
     }
-
-    async init(client:Client):Promise<void> {
-        if (configs.webhook.id && configs.webhook.token) {
-            const whk = await client.fetchWebhook(configs.webhook.id, configs.webhook.token);
-            this.webhook = whk;
-            const character = await (new CharacterService()).getCharacterWithName(whk.name);
-            character? this.currentCharacter=character : this.currentCharacter={name:whk.name, avatar:whk.avatar}
+    async create(channel:TextChannel, character:{name:string, avatar:BufferResolvable}):Promise<void> {
+        //Create a new Webhook for the character to create, and add this new character to the database
+        this.webhook = await channel.createWebhook({...character, reason:"Adding of a new character in the guild."});
+        if (this.webhook.token) {
+            this.currentCharacter = {...character, webhook_data:{id:this.webhook.id, token:this.webhook.token}}
+            await this.characterService.addCharacter(this.currentCharacter);
+            this.isInitiated=true;
         } else {
-            throw "You must specify webhook's data in 'config.json' file."
+            throw 'Fail in webhook creation : The created webhook\'s token is unavailable.'
         }
     }
-    private async changeChannel(channel:TextChannel) {
-        try {
-            await this.webhook.edit({
-                channel:channel
-            });
-        } catch(error) {
-            console.error(error);
-        }
+    private async changeChannel(channel:TextChannel):Promise<void> {
+        await this.webhook.edit({channel:channel});
     }
-    private async changeCharacter(character:Character) {
-        try {
-            await this.webhook.edit({
-                name:character.name,
-                avatar:character.avatar
-            });
-        } catch(error) {
-            console.error(error);
-        }
+    private async editWebhook(character:{name:string, avatar:BufferResolvable}) {
+        await this.webhook.edit({
+            name:character.name,
+            avatar:character.avatar
+        });
     }
-    async speak(message:string, character:Character, channel:TextChannel): Promise<void> {
-        //Makes the mentionned character speak in the specified channel
-        try {
-            if (this.webhook.channelId!=channel.id) {
-                await this.changeChannel(channel);
-            }
-            if (this.currentCharacter.name != character.name) {
-                await this.changeCharacter(character);
-            }
-            await this.webhook.send(message);
-        } catch(error) {
-            throw error;
+    async editCharacter(character:{name:string, avatar:BufferResolvable}) {
+        await this.editWebhook(character);
+    }
+    async speak(message:string, channel:TextChannel): Promise<void> {
+        if (!this.isInitiated) throw "The MyWebhook hasn't been initiated.";
+        //Makes the character linked to the webhook speak in the specified channel
+        if (this.webhook.channelId!=channel.id) {
+            await this.changeChannel(channel);
         }
+        await this.webhook.send(message);
     }
 }

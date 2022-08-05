@@ -1,41 +1,29 @@
 import { Character } from "../models/character";
 
 export class CharacterService {
-    //No characters must share the same name
-    characters:Character[] = [
-        {
-            name:"Gérard Depardieu",
-            avatar:'https://m.media-amazon.com/images/M/MV5BZGZlNjQ0NjMtZjdlMi00NzdmLThjN2QtMTNlMDc0NDVkNDBiXkEyXkFqcGdeQXVyNjgxMTQ3MTY@._V1_.jpg',
-            quotes:[
-                "Ça se bouffe, ça ?\n https://tenor.com/view/seal-running-away-cute-weird-animal-gif-17851078",
-                "J'aime le cidre des paysans, ce qu'on nomme le \"tord-boyaux\", et qui file la chiasse à chaque fois."
-            ]
-        },
-        {
-            name:'Jacques Chirac',
-            avatar:'https://www.corbeil-essonnes.fr/wp-content/uploads/Portrait-Jacques-Chirac.jpg',
-            quotes:[
-                'Un chef c\'est fait pour cheffer.',
-                "J'aime les pommes."
-            ]
-        }
-    ];
+    /*This class is used to fetch and put Character elements
+    in the database.
+    Notes that just a single character can have a certain name,
+    making this property a primary key in the database and an
+    identifier for the character's fetching.*/
+    characters:Character[] = [];
     constructor() {}
-    async getCharacters():Promise<Character[]> {
+    private async getCharacters():Promise<Character[]> {
         return this.characters
     }
-    async getCharactersName():Promise<string[]> {
+    async getCharactersNames():Promise<string[]> {
         const tab :string[]= [];
         (await this.getCharacters()).forEach(value => {
             tab.push(value.name);
         });
         return tab;
     }
-    async getCharacterWithName(name:string): Promise<Character|undefined> {
+    async getCharacterWithName(name:string): Promise<Character> {
         const res = (await this.getCharacters()).find(value=>value.name==name);
-        if (!res) {
-            console.error("Not found");
-        }
+        if (!res) throw `The character with ${name} name hasn't been found`
         return res;
+    }
+    async addCharacter(character:Character):Promise<void>{
+        this.characters.push(character);
     }
 }
