@@ -29,6 +29,10 @@ export class MyWebhook {
             throw 'Fail in webhook creation : The created webhook\'s token is unavailable.'
         }
     }
+    async delete() {
+        this.characterService.deleteCharacter(this.webhook.name);
+        await this.webhook.delete();
+    }
     private async changeChannel(channel:TextChannel):Promise<void> {
         await this.webhook.edit({channel:channel});
     }

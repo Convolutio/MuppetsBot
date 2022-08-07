@@ -16,7 +16,7 @@ const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.ts'
 
 (async () => {
 	//Deploy commands
-	await deployCommands;
+	await deployCommands();
 	for (const file of eventFiles) {
 		const filePath = path.join(eventsPath, file);
 		const eventBuilder:MyEventBuilder = require(filePath);

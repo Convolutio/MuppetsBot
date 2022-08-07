@@ -5,5 +5,8 @@ export class Character {
     name!:string;
     avatar!:BufferResolvable;
     webhook_data!:{id:string, token:string};
-    quotes?:string[];
+    quotes?:{
+        quote:string,
+        id:number
+    }[];
 }
