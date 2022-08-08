@@ -64,7 +64,7 @@ const command:MyCommandType = {
         } else if (subcommand==="modifier") {
             const new_quote = interaction.options.getString('contenu', true);
             await AddQuoteSelector(
-                charName, 'selectQuoteToEdit',interaction,
+                charName, false, 'selectQuoteToEdit',interaction,
                 async i => {
                     await i.deferUpdate();
                     const selectedQuoteId = +i.values[0];
@@ -77,7 +77,7 @@ const command:MyCommandType = {
             );
         } else if (subcommand==="supprimer") {
             await AddQuoteSelector(
-                charName, 'selectQuoteToDelete',interaction,
+                charName, false, 'selectQuoteToDelete',interaction,
                 async i => {
                     await i.deferUpdate();
                     const selectedQuoteId = +i.values[0];

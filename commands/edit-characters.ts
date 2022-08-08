@@ -1,78 +1,115 @@
-import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, ModalActionRowComponentBuilder, ModalBuilder, SelectMenuBuilder, SlashCommandBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { Attachment, BufferResolvable, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { Stream } from "stream";
 import { CharacterService } from "../classes/characterService";
-import { AddCharacterSelector } from "../classes/selectors";
 import { MyWebhook } from "../classes/webhook";
 import { MyCommandType } from "../models/command.type";
 
-function characterForm(customId:string, creation:boolean=true) {
-    const modal = new ModalBuilder()
-        .setCustomId(customId)
-        .setTitle(creation?'Création':'Édition' + ' d\'un nouveau personnage');
-    const nameField = new ActionRowBuilder<ModalActionRowComponentBuilder>()
-        .addComponents(new TextInputBuilder()
-            .setCustomId('charNameInput')
-            .setLabel("Quel sera le nom de votre personnage ?")
-            .setRequired(creation)
-            .setStyle(TextInputStyle.Short)
-            );
-    const avatarField = new ActionRowBuilder<ModalActionRowComponentBuilder>()
-        .addComponents(new TextInputBuilder()
-            .setCustomId('avatarFieldInput')
-            .setLabel('Entrez l\'url de son avatar :')
-            .setRequired(creation)
-            .setStyle(TextInputStyle.Short)
-        )
-    modal.addComponents(nameField, avatarField);
-    return modal;
-};
+function getAvatar(avatar_url:string|null, avatarAttachment?:Attachment|null):BufferResolvable|undefined {
+    let avatar:BufferResolvable|undefined;
+    if (avatar_url) avatar = avatar_url;
+    if (avatarAttachment && avatarAttachment.contentType?.includes('image')){
+        const attachment = avatarAttachment.attachment;
+        if (!(attachment instanceof Stream)) {
+            avatar = attachment;
+        }
+    }
+    return avatar;
+}
 
 const command:MyCommandType = {
     async buildData() {
+        const options = (await (new CharacterService()).getCharactersNames())
+            .map(name => ({name:name, value:name}));
         return new SlashCommandBuilder()
             .setName("personnages")
             .setDescription("Ouvre un formulaire pour ajouter un nouveau personnage à faire parler.")
             .addSubcommand(subcommand => {
                 return subcommand.setName("ajouter")
-                .setDescription("Créez un nouveau personnage")
+                .setDescription("Créez un nouveau personnage en renseignant son futur pseudo et son avatar.")
+                .addStringOption(option =>
+                    option.setName('nom')
+                        .setDescription('Entrez le nom de votre nouveau personnage.')
+                        .setRequired(true)
+                    )
+                .addStringOption(option =>
+                    option.setName("url_avatar")
+                        .setDescription("(Optionnel) Entrez l'url de son avatar.")
+                    )
+                .addAttachmentOption(option =>
+                    option.setName("fichier_avatar")
+                        .setDescription("(Optionnel) Attacher une image en guise d'avatar pour votre nouveau personnage.")
+                    )
             })
             .addSubcommand(subcommand =>
                 subcommand.setName('modifier')
                 .setDescription('Éditez un personnage.')
+                .addStringOption(option => 
+                    option.setName('personnage')
+                        .setDescription('Entrez le nom du personnage à éditer')
+                        .setRequired(true)
+                        .addChoices(...options)
+                )
+                .addStringOption(option =>
+                    option.setName('nom')
+                        .setDescription('(Optionnel) Entrez le nouveau nom du personnage.')
+                    )
+                .addStringOption(option =>
+                    option.setName("url_avatar")
+                        .setDescription("(Optionnel) Entrez l'url de son avatar.")
+                    )
+                .addAttachmentOption(option =>
+                    option.setName("fichier_avatar")
+                        .setDescription("(Optionnel) Attacher une image en guise d'avatar pour votre nouveau personnage.")
+                    )
             )
             .addSubcommand(subcommand => {
                 return subcommand.setName("supprimer")
                 .setDescription('Supprimez un personnage')
+                .addStringOption(option =>
+                    option.setName("personnage")
+                        .setDescription("Renseignez le personnage à effacer.")
+                        .setRequired(true)
+                        .addChoices(...options)
+                    )
             })
     },
     async execute(interaction:ChatInputCommandInteraction){
+        await interaction.deferReply();
         const subcommand = interaction.options.getSubcommand(true);
+        const channel = await interaction.channel?.fetch();
+        if (!channel) throw "Channel information not found. Please try again.";
+        const webhook = new MyWebhook();
         if (subcommand==="ajouter") {
-            const modal = characterForm('selectCharToDelete');
-            await interaction.showModal(modal);
+            const name = interaction.options.getString('nom', true);
+            const avatar_url = interaction.options.getString('url_avatar');
+            const avatarAttachment = interaction.options.getAttachment('fichier_avatar');
+            const avatar = getAvatar(avatar_url, avatarAttachment)
+            if (!avatar) throw "L'avatar n'a pas pu être traité. Réessayez avec une option valide";
+            const character = {
+                name:name,
+                avatar:avatar
+            }
+            await webhook.create(channel, character);
+            await interaction.editReply(`Le nouveau personnage **${character.name}** a été créé !`);
         } else if (subcommand==="modifier"){
-            await AddCharacterSelector(
-                'selectCharToEdit', interaction,
-                async i => {
-                    const id = (await (new CharacterService()).getCharacterWithName(i.values[0])).webhook_data.id;
-                    const modal = characterForm(`editChar_${id}`, false).setTitle(
-                        `Édition du personnage ${i.values[0]}`
-                    );
-                    await i.showModal(modal);
-                });
+            const charName = interaction.options.getString('personnage', true);
+            const name = interaction.options.getString('nom');
+            const avatar_url = interaction.options.getString('url_avatar');
+            const avatarAttachment = interaction.options.getAttachment('fichier_avatar');
+            const character = {
+                name:name||undefined,
+                avatar:getAvatar(avatar_url, avatarAttachment)
+            }
+            await webhook.init(interaction.client, charName);
+            await webhook.editCharacter(character);
+            await interaction.editReply(`Le personnage **${charName}** a été édité avec succès.`);
         } else if (subcommand==="supprimer"){
-            await AddCharacterSelector('selectCharToDelete', interaction, 
-                async i=>{
-                    i.deferUpdate();
-                    if (i.customId!=="selectCharToDelete") return;
-                    const charName = i.values[0];
-                    const webhook = (new MyWebhook());
-                    await webhook.init(i.client, charName);
-                    await webhook.delete();
-                    await i.editReply({
-                        content:`:+1: Le personnage **${charName}** a été supprimé avec succès !`,
-                        components:[]
-                    })
-                });
+            const charName = interaction.options.getString('personnage', true);
+            await webhook.init(interaction.client, charName);
+            await webhook.delete();
+            await interaction.editReply({
+                content:`:+1: Le personnage **${charName}** a été supprimé avec succès !`
+            });
         }
     }
 }
