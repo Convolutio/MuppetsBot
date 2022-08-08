@@ -38,11 +38,18 @@ export class MyWebhook {
         await this.webhook.edit({channel:channel});
     }
     private async editWebhook(character:{name?:string, avatar?:BufferResolvable}) {
-        await this.webhook.edit(character);
+        const newName:string = character.name?character.name:this.webhook.name;
+        await this.webhook.edit({
+            name:newName,
+            avatar:character.avatar
+        });
     }
     async editCharacter(character:{name?:string, avatar?:BufferResolvable}) {
         if (!this.isInitiated) throw "The MyWebhook instance hasn't been initiated";
         await this.editWebhook(character);
+        if (character.name) {
+            await this.characterService.editCharacterName(this.webhook.id, character.name);
+        }
     }
     async speak(message:string, channel:TextChannel): Promise<void> {
         if (!this.isInitiated) throw "The MyWebhook instance hasn't been initiated.";

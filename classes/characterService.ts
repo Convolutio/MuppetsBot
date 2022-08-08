@@ -113,6 +113,12 @@ export class CharacterService {
         if (!row) throw `Character with "${name}" name not found.`;
         return await this.buildCharacter(row);
     }
+    async getCharacterWithWhkId(whkId:string): Promise<Character> {
+        const row = await this.db.query<db_Character>(`SELECT * FROM characters WHERE characters.whkId="${whkId}"`,
+            {type:QueryTypes.SELECT, plain:true});
+        if (!row) throw `Character with "${whkId}" webhook id not found.`;
+        return await this.buildCharacter(row);
+    }
     async addQuote(characterName:string, quote:string) {
         await this.db.query(
         `INSERT INTO quotes (quote, author_whkId) VALUES
@@ -126,7 +132,15 @@ export class CharacterService {
             WHERE quotes.quote_id=${quote_id};`,
             {type:QueryTypes.DELETE}
         );
-    }
+    };
+    async editQuote(quote_id:number, quote:string) {
+        await this.db.query(
+            `UPDATE quotes
+                SET quote='${quote}'
+                WHERE quote_id=${quote_id}`,
+            {type:QueryTypes.UPDATE}
+        );
+    };
     async addCharacter(character:Character):Promise<void> {
         const data = [
             character.name,
@@ -149,4 +163,15 @@ export class CharacterService {
             {type:QueryTypes.DELETE})
         await deployCommands();
     }
+    async editCharacterName(whkId:string, newName:string) {
+        await this.db.query(
+            `UPDATE characters
+                SET name="${newName}"
+                WHERE whkId="${whkId}"`,
+            {type:QueryTypes.UPDATE}
+        );
+        await deployCommands();
+    }
+
+
 }
