@@ -4,8 +4,7 @@ It is a Discord BOT for a special guild. Features will come with inspiration.
 
 ## Config
 
-You must create a webhook in your server.
-You must then create a `config.json` file following this schema:
+You must create in the repository's root directory a `config.json` file following this schema:
 
 ```json
 {
@@ -13,11 +12,13 @@ You must then create a `config.json` file following this schema:
     "clientId":"<Your application id>",
     "guildId":"<The id of the single guild where the bot will run>",
     "commandToDelete_id":"", //Let "" if you don't need it
-    "webhook": {
-        "id":"<webhook's id>",
-        "token":"<webhook's token>"
-    }
 }
+```
+
+You also must create an sqlite `database.db` file, just by once executing the `utils/init_db.ts` file.
+
+```bash
+ts-node utils/init_db.ts
 ```
 
 ## ts-node
@@ -28,16 +29,6 @@ You must then create a `config.json` file following this schema:
 ts-node index.ts
 ```
 
-### Register commands to the guild
-
-Program the commands with the required syntax in the `./commands` folder, then set the concerned guild's id
-in the `config.json` file and then run the `deploy-command.ts` file :
-
-```bash
-::In the repository folder
-ts-node deploy-command.ts
-```
-
 ### Delete a command from the guild
 
-Execute the `delete-command.ts` file (_to develop_)
+This is a manual task which can be carried out by executing the `delete-command.ts` file

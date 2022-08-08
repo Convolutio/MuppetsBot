@@ -1,10 +1,15 @@
-import { Interaction, Collection, InteractionType, TextChannel } from "discord.js";
+import { Interaction, Collection, InteractionType, TextChannel, ChatInputCommandInteraction, ModalSubmitInteraction } from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
-import { MyWebhook } from "../classes/webhook";
 import { MyCommandType } from "../models/command.type";
 import MyEventBuilder from "../models/event.type";
-import { setTimeout } from "node:timers/promises";
+import modalSubmit from "../interactions/modal-submit";
+
+//Handling interaction error
+async function handle(interaction:ModalSubmitInteraction|ChatInputCommandInteraction, error:unknown) {
+    const rep = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
+    try {await interaction.reply(rep)} catch {await interaction.editReply(rep)}
+}
 
 //Execute all deployed commands
 const commands = new Collection<string, MyCommandType>();
@@ -21,21 +26,12 @@ const buildEvent : MyEventBuilder = async () => {
     return {
         name:"interactionCreate",
         async execute(interaction:Interaction) {
-            if (interaction.type===InteractionType.ModalSubmit
-                && interaction.customId==="charCreatorForm") {
-                    await interaction.deferReply();
-                    const character = {
-                        name:interaction.fields.getTextInputValue('charNameInput'),
-                        avatar:interaction.fields.getTextInputValue('avatarFieldInput')
-                    }
-                    try {
-                        const channel = await interaction.channel?.fetch(true);
-                        if (!(channel instanceof TextChannel)) throw "TextChannel not found";
-                        await (new MyWebhook()).create(channel,character);
-                        await interaction.editReply(`Le nouveau personnage ${character.name} a été créé !`);
-                    } catch(error) {
-                        await interaction.editReply(`An error has occured when executing this command:\n${error}`);
-                    }
+            if (interaction.type===InteractionType.ModalSubmit) {
+                try {
+                    await modalSubmit.execute(interaction);
+                } catch(error) {
+                    handle(interaction, error);
+                }
             }
             //Run just slash commands
             if (!interaction.isChatInputCommand()) return;
@@ -45,9 +41,7 @@ const buildEvent : MyEventBuilder = async () => {
                 await command.execute(interaction);
             } catch(error) {
                 if (interaction.isChatInputCommand()) {
-                    const rep = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
-                    try {await interaction.reply({content: rep, ephemeral:true})}
-                    catch {await interaction.editReply(rep)};
+                    handle(interaction, error);
                 }
             }
         }

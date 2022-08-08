@@ -42,9 +42,8 @@ const command : MyCommandType = {
         const charService = new CharacterService();
         //The command has been submitted.
         await interaction.deferReply({ephemeral:true});
-        const charName = interaction.options.getString('personnage');
+        const charName = interaction.options.getString('personnage', true);
         const textContent = interaction.options.getString('contenu');
-        if (!charName) throw 'Le nom de personnage à spécifier est introuvable.'
         const selectedChar = await charService.getCharacterWithName(charName);
         const quotes = selectedChar.quotes||[];
         if (textContent) {
@@ -70,6 +69,7 @@ const command : MyCommandType = {
             const msg = await interaction.editReply({content:'Choisissez une réplique', components:rows});
             const menuCollector = msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000});
             menuCollector.on('collect', async i => {
+                if (i.customId!="1") return ;
                 await i.update({content:"En attente du webhook...", components:[]});
                 await executeWebhook(interaction, charName, quotes.find(val => val.id===+i.values[0])?.quote||'');
             });

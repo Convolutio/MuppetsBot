@@ -14,7 +14,7 @@ export class MyWebhook {
         this.currentCharacter=await this.characterService.getCharacterWithName(characterName);
         this.webhook=await client.fetchWebhook(this.currentCharacter.webhook_data.id, this.currentCharacter.webhook_data.token);
         if (this.webhook.name!==this.currentCharacter.name) {
-            await this.editWebhook(this.currentCharacter);
+            await this.editWebhook({name:this.currentCharacter.name});
         }
         this.isInitiated=true;
     }
@@ -30,23 +30,22 @@ export class MyWebhook {
         }
     }
     async delete() {
-        this.characterService.deleteCharacter(this.webhook.name);
+        if (!this.isInitiated) throw "The MyWebhook instance hasn't been initiated";
+        await this.characterService.deleteCharacter(this.webhook.name);
         await this.webhook.delete();
     }
     private async changeChannel(channel:TextChannel):Promise<void> {
         await this.webhook.edit({channel:channel});
     }
-    private async editWebhook(character:{name:string, avatar:BufferResolvable}) {
-        await this.webhook.edit({
-            name:character.name,
-            avatar:character.avatar
-        });
+    private async editWebhook(character:{name?:string, avatar?:BufferResolvable}) {
+        await this.webhook.edit(character);
     }
-    async editCharacter(character:{name:string, avatar:BufferResolvable}) {
+    async editCharacter(character:{name?:string, avatar?:BufferResolvable}) {
+        if (!this.isInitiated) throw "The MyWebhook instance hasn't been initiated";
         await this.editWebhook(character);
     }
     async speak(message:string, channel:TextChannel): Promise<void> {
-        if (!this.isInitiated) throw "The MyWebhook hasn't been initiated.";
+        if (!this.isInitiated) throw "The MyWebhook instance hasn't been initiated.";
         //Makes the character linked to the webhook speak in the specified channel
         if (this.webhook.channelId!=channel.id) {
             await this.changeChannel(channel);

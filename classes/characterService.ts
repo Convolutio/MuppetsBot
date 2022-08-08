@@ -14,7 +14,6 @@ class db_Character extends Model {
     declare name:string;
     declare whkId:string;
     declare whkToken:string;
-    declare avatar:string;
 };
 
 class db_Quotes extends Model {
@@ -47,7 +46,6 @@ export class CharacterService {
                 allowNull:false,
                 unique:true
             },
-            avatar:DataTypes.TEXT,
             whkID:{
                 type:DataTypes.STRING(30),
                 primaryKey:true
@@ -81,7 +79,6 @@ export class CharacterService {
     private async buildCharacter(data:db_Character):Promise<Character> {
         const character:Character={
             name:data.name,
-            avatar:data.avatar,
             webhook_data:{
                 id:data.whkId,
                 token:data.whkToken
@@ -113,7 +110,7 @@ export class CharacterService {
     async getCharacterWithName(name:string): Promise<Character> {
         const row = await this.db.query<db_Character>(`SELECT * FROM characters WHERE characters.name="${name}"`,
             {type:QueryTypes.SELECT, plain:true});
-        if (!row) throw `Character with ${name} not found.`;
+        if (!row) throw `Character with "${name}" name not found.`;
         return await this.buildCharacter(row);
     }
     async addQuote(characterName:string, quote:string) {
@@ -131,29 +128,25 @@ export class CharacterService {
         );
     }
     async addCharacter(character:Character):Promise<void> {
-        let avatar = character.avatar;
-        if (avatar instanceof Buffer) {
-            avatar = avatar.toString();
-        } 
         const data = [
             character.name,
-            avatar,
             character.webhook_data.id,
             character.webhook_data.token
         ]
-        await this.db.query(`INSERT INTO characters VALUES(?, ?, ?, ?)`, {replacements:data, type:QueryTypes.INSERT});
+        await this.db.query(`INSERT INTO characters VALUES(?, ?, ?)`, {replacements:data, type:QueryTypes.INSERT});
         await deployCommands();
     }
     async deleteCharacter(characterName:string) {
         await this.db.query(
             `DELETE FROM quotes
             WHERE quotes.author_whkId=(SELECT whkId FROM characters
-                WHERE name="${characterName}");
-            DELETE FROM characters
-                WHERE name="${characterName}";
-            `,
+                WHERE name="${characterName}");`,
             {type:QueryTypes.DELETE}
         );
+        await this.db.query(
+            `DELETE FROM characters
+                WHERE name="${characterName}";`,
+            {type:QueryTypes.DELETE})
         await deployCommands();
     }
 }

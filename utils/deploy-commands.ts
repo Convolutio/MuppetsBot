@@ -12,19 +12,19 @@ export = (async () => {
     const commandsFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".ts"));
     const rest = new REST({version:"10"}).setToken(token);
     try {
-        console.log(`Requiring commands' data...`);
+        console.log(`     Requiring commands' data...`);
         for (const file of commandsFiles) {
             const filePath = path.join(commandsPath, file);
             const command:MyCommandType = require(filePath);
             const data = await command.buildData();
             commands.push(data.toJSON());
         }
-        console.log(`Started refreshing application (/) commands in ${guildId} guild.`);
+        console.log(`     Started refreshing application (/) commands in ${guildId} guild.`);
         await rest.put(
             Routes.applicationGuildCommands(clientId, guildId),
             { body: commands}
         );
-        console.log("Successfuly reloaded application (/) commands in this server.")
+        console.log("     Successfuly reloaded application (/) commands in this server.")
     } catch(error) {
         console.error(error);
     }
