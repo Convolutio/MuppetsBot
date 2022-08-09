@@ -2,14 +2,6 @@ import { Character } from "../models/character";
 import path from "node:path";
 import { Sequelize, Model, DataTypes, QueryTypes } from "sequelize";
 import deployCommands from '../utils/deploy-commands'
-
-interface EXPECTED_DATA_TYPE {
-    name:string;
-    avatar:string;
-    whkId:string;
-    whkToken:string;
-}
-
 class db_Character extends Model {
     declare name:string;
     declare whkId:string;
@@ -74,7 +66,7 @@ export class CharacterService {
                 primaryKey:true
             }
         }, {sequelize:this.db, modelName:'quotes'});
-    }
+    };
 
     private async buildCharacter(data:db_Character):Promise<Character> {
         const character:Character={
@@ -90,35 +82,18 @@ export class CharacterService {
             WHERE characters.whkId="${character.webhook_data.id}";`, {type:QueryTypes.SELECT}))
             .map((value)=>({quote:value.quote, id:value.quote_id}));
         return character;
-    }
-
-    private async getCharacters():Promise<Character[]> {
-        const chars:Character[]=[];
-        const promises = (await this.db.query<db_Character>(`SELECT * FROM characters`,{type:QueryTypes.SELECT}))
-            .map(async (value) => {
-                chars.push(await this.buildCharacter(value));
-            });
-        for (let promise of promises) {
-            await promise;
-        }
-        return chars;
-    }
+    };
     async getCharactersNames():Promise<string[]> {
         return (await this.db.query<{name:string}>(`SELECT name FROM characters`, {type:QueryTypes.SELECT}))
             .map(value => value.name);
-    }
+    };
     async getCharacterWithName(name:string): Promise<Character> {
         const row = await this.db.query<db_Character>(`SELECT * FROM characters WHERE characters.name="${name}"`,
             {type:QueryTypes.SELECT, plain:true});
         if (!row) throw `Character with "${name}" name not found.`;
         return await this.buildCharacter(row);
-    }
-    async getCharacterWithWhkId(whkId:string): Promise<Character> {
-        const row = await this.db.query<db_Character>(`SELECT * FROM characters WHERE characters.whkId="${whkId}"`,
-            {type:QueryTypes.SELECT, plain:true});
-        if (!row) throw `Character with "${whkId}" webhook id not found.`;
-        return await this.buildCharacter(row);
-    }
+    };
+
     async addQuote(characterName:string, quote:string) {
         await this.db.query(
         `INSERT INTO quotes (quote, author_whkId) VALUES
@@ -141,6 +116,7 @@ export class CharacterService {
             {type:QueryTypes.UPDATE}
         );
     };
+
     async addCharacter(character:Character):Promise<void> {
         const data = [
             character.name,
@@ -149,7 +125,7 @@ export class CharacterService {
         ]
         await this.db.query(`INSERT INTO characters VALUES(?, ?, ?)`, {replacements:data, type:QueryTypes.INSERT});
         await deployCommands();
-    }
+    };
     async deleteCharacter(characterName:string) {
         await this.db.query(
             `DELETE FROM quotes
@@ -162,7 +138,7 @@ export class CharacterService {
                 WHERE name="${characterName}";`,
             {type:QueryTypes.DELETE})
         await deployCommands();
-    }
+    };
     async editCharacterName(whkId:string, newName:string) {
         await this.db.query(
             `UPDATE characters
@@ -171,7 +147,7 @@ export class CharacterService {
             {type:QueryTypes.UPDATE}
         );
         await deployCommands();
-    }
+    };
 
 
 }

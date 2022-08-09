@@ -15,34 +15,6 @@ function selector(customId:string, placeholder:string, ...options:{label:string,
 const charService = new CharacterService();
 
 const to_export = {
-    async AddCharacterSelector(customId:string, interaction:ChatInputCommandInteraction,
-        callback:(i:SelectMenuInteraction)=>Promise<void>):Promise<void> {
-        /*Reply _again_ to the interaction with inviting user to select a character in the selector
-        which will be created. The callback argument will be executed when a value of the
-        selector is submitted.
-        I insist on the _again_ : please deferReply or reply your interaction before run this function.
-        */
-        const characterNames = await charService.getCharactersNames();
-        const selectorObj = selector(
-            customId, "Sélectionner le personnage",...characterNames.map(
-            name => {
-                const label:string=name.length>50?name.slice(0,47)+'...':name; 
-                return {
-                    label:label,
-                    value:name
-                }
-        }));
-        const msg = await interaction.editReply({
-            content:`Veuillez sélectionner votre personnage.`,
-            components : [selectorObj]
-        });
-        msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
-            .on('collect', async inter=>{
-                if (inter.customId!==customId) return;
-                await callback(inter);
-            });
-    },
-
     async AddQuoteSelector(charName:string, returnQuote:boolean,customId:string, interaction:ChatInputCommandInteraction,
         callback:(interaction:SelectMenuInteraction)=>Promise<void>):Promise<void> {
         /*Reply _again_ to the interaction with inviting user to select a character's quote in the selector

@@ -1,5 +1,4 @@
 import { Attachment, BufferResolvable, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { Stream } from "stream";
 import { CharacterService } from "../classes/characterService";
 import { MyWebhook } from "../classes/webhook";
 import { MyCommandType } from "../models/command.type";

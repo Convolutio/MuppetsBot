@@ -1,4 +1,4 @@
-import { BufferResolvable, Client, DMChannel, PartialGroupDMChannel, TextBasedChannel, TextChannel, Webhook } from 'discord.js';
+import { BufferResolvable, Client, TextBasedChannel, Webhook } from 'discord.js';
 import { Character } from '../models/character';
 import { CharacterService } from './characterService';
 
@@ -47,7 +47,6 @@ export class MyWebhook {
         if (character.avatar) {
             newAvatar = character.avatar;
         }
-        console.log("Avatar:", newAvatar);
         try {
             await this.webhook.edit({
                 name:newName,

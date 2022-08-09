@@ -1,9 +1,8 @@
-import { Interaction, Collection, InteractionType, TextChannel, ChatInputCommandInteraction, ModalSubmitInteraction } from "discord.js";
+import { Interaction, Collection, ChatInputCommandInteraction, ModalSubmitInteraction } from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
 import { MyCommandType } from "../models/command.type";
 import MyEventBuilder from "../models/event.type";
-import modalSubmit from "../interactions/modal-submit";
 
 //Handling interaction error
 async function handle(interaction:ModalSubmitInteraction|ChatInputCommandInteraction, error:unknown) {
@@ -26,13 +25,6 @@ const buildEvent : MyEventBuilder = async () => {
     return {
         name:"interactionCreate",
         async execute(interaction:Interaction) {
-            if (interaction.type===InteractionType.ModalSubmit) {
-                try {
-                    await modalSubmit.execute(interaction);
-                } catch(error) {
-                    handle(interaction, error);
-                }
-            }
             //Run just slash commands
             if (!interaction.isChatInputCommand()) return;
             const command = commands.get(interaction.commandName);
