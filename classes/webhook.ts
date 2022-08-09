@@ -43,11 +43,17 @@ export class MyWebhook {
     }
     private async editWebhook(character:{name?:string, avatar?:BufferResolvable}) {
         const newName:string = character.name?character.name:this.webhook.name;
-        const newAvatar:BufferResolvable = character.avatar?character.avatar:this.webhook.avatar
-        await this.webhook.edit({
-            name:newName,
-            avatar:newAvatar
-        });
+        let newAvatar:BufferResolvable|null = this.webhook.avatarURL();
+        if (character.avatar) {
+            newAvatar = character.avatar;
+        }
+        console.log("Avatar:", newAvatar);
+        try {
+            await this.webhook.edit({
+                name:newName,
+                avatar:newAvatar
+            });
+        } catch (error) {console.error(error); throw error}
     }
     async editCharacter(character:{name?:string, avatar?:BufferResolvable}) {
         if (!this.isInitiated) throw "The MyWebhook instance hasn't been initiated";

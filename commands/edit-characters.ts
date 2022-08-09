@@ -4,14 +4,12 @@ import { CharacterService } from "../classes/characterService";
 import { MyWebhook } from "../classes/webhook";
 import { MyCommandType } from "../models/command.type";
 
-function getAvatar(avatar_url:string|null, avatarAttachment?:Attachment|null):BufferResolvable|undefined {
+function getAvatar(avatar_url:string|null, avatarAttachment:Attachment|null):BufferResolvable|undefined {
     let avatar:BufferResolvable|undefined;
     if (avatar_url) avatar = avatar_url;
     if (avatarAttachment && avatarAttachment.contentType?.includes('image')){
-        const attachment = avatarAttachment.attachment;
-        if (!(attachment instanceof Stream)) {
-            avatar = attachment;
-        }
+        const attachment = avatarAttachment.url
+        avatar = attachment;
     }
     return avatar;
 }
@@ -96,9 +94,10 @@ const command:MyCommandType = {
             const name = interaction.options.getString('nom');
             const avatar_url = interaction.options.getString('url_avatar');
             const avatarAttachment = interaction.options.getAttachment('fichier_avatar');
+            const newAvatar = getAvatar(avatar_url, avatarAttachment);
             const character = {
                 name:name||undefined,
-                avatar:getAvatar(avatar_url, avatarAttachment)
+                avatar:newAvatar
             }
             await webhook.init(interaction.client, charName);
             await webhook.editCharacter(character);
