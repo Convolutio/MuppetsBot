@@ -4,6 +4,8 @@ It is a Discord BOT for a special guild. Features will come with inspiration.
 
 ## Config
 
+First and foremost, run `npm install` in the repository's root directory.
+
 You must create in the repository's root directory a `config.json` file following this schema:
 
 ```json
