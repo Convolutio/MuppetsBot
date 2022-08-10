@@ -54,13 +54,14 @@ const command:MyCommandType = {
         
     },
     async execute(interaction:ChatInputCommandInteraction) {
+        await interaction.deferReply();
         const charService = new CharacterService();
         const subcommand = interaction.options.getSubcommand(true);
         const charName = interaction.options.getString('personnage', true);
         if (subcommand === "ajouter") {
             const quote = interaction.options.getString('contenu', true);
             await charService.addQuote(charName, quote);
-            await interaction.reply({content:'La nouvelle réplique a été créée avec succès.',ephemeral:true});
+            await interaction.editReply({content:'La nouvelle réplique a été créée avec succès.'});
         } else if (subcommand==="modifier") {
             const new_quote = interaction.options.getString('contenu', true);
             await AddQuoteSelector(
