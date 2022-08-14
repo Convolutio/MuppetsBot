@@ -1,10 +1,17 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, Interaction, SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js'
+import { ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js'
+import { MuppetsClient } from '../muppets-client';
 
-type slashCommand = SlashCommandBuilder
+type slashCommandBuilders = SlashCommandBuilder
     | Omit<SlashCommandBuilder, 'addSubcommand'|'addSubcommandGroup'>
     | SlashCommandSubcommandsOnlyBuilder;
 
-export interface MyCommandType {
-    buildData:(()=>Promise<slashCommand>);
-    execute: ((interaction:any)=>Promise<void>)
+export class AsyncBuiltCommand {
+    muppetsClient!:MuppetsClient;
+    buildData!:(()=>Promise<slashCommandBuilders>);
+    execute!: ((interaction:ChatInputCommandInteraction)=>Promise<void>);
+}
+
+export interface AsyncBuiltCommandMethods {
+    buildData:((this:AsyncBuiltCommand)=>Promise<slashCommandBuilders>);
+    execute: ((this:AsyncBuiltCommand, interaction:ChatInputCommandInteraction)=>Promise<void>);
 }

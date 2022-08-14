@@ -1,7 +1,8 @@
 import { Character } from "../models/character";
 import path from "node:path";
 import { Sequelize, Model, DataTypes, QueryTypes } from "sequelize";
-import deployCommands from '../utils/deploy-commands'
+import { MuppetsClient } from "../muppets-client";
+
 class db_Character extends Model {
     declare name:string;
     declare whkId:string;
@@ -23,7 +24,7 @@ export class CharacterService {
     as they cannot be throw without stop all process.*/
     private db!:Sequelize;
 
-    constructor() {
+    constructor(private muppetClient:MuppetsClient) {
         const db_path = path.join(__dirname, '..', "database.db");
         this.db = new Sequelize({
             dialect:'sqlite',
@@ -124,7 +125,7 @@ export class CharacterService {
             character.webhook_data.token
         ]
         await this.db.query(`INSERT INTO characters VALUES(?, ?, ?)`, {replacements:data, type:QueryTypes.INSERT});
-        await deployCommands();
+        await this.muppetClient.deployCommands();
     };
     async deleteCharacter(characterName:string) {
         await this.db.query(
@@ -137,7 +138,7 @@ export class CharacterService {
             `DELETE FROM characters
                 WHERE name="${characterName}";`,
             {type:QueryTypes.DELETE})
-        await deployCommands();
+        await this.muppetClient.deployCommands();
     };
     async editCharacterName(whkId:string, newName:string) {
         await this.db.query(
@@ -146,7 +147,7 @@ export class CharacterService {
                 WHERE whkId="${whkId}"`,
             {type:QueryTypes.UPDATE}
         );
-        await deployCommands();
+        await this.muppetClient.deployCommands();
     };
 
 

@@ -1,6 +1,6 @@
 import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
 import { ChatInputCommandInteraction, ComponentType, SelectMenuInteraction } from "discord.js";
-import { CharacterService } from "./characterService";
+import { MuppetsClient } from "../muppets-client";
 
 function selector(customId:string, placeholder:string, ...options:{label:string, value:string}[]) {
     return new ActionRowBuilder<SelectMenuBuilder>()
@@ -12,16 +12,14 @@ function selector(customId:string, placeholder:string, ...options:{label:string,
     )
 }
 
-const charService = new CharacterService();
-
 const to_export = {
-    async AddQuoteSelector(charName:string, returnQuote:boolean,customId:string, interaction:ChatInputCommandInteraction,
+    async AddQuoteSelector(this:MuppetsClient, charName:string, returnQuote:boolean,customId:string, interaction:ChatInputCommandInteraction,
         callback:(interaction:SelectMenuInteraction)=>Promise<void>):Promise<void> {
         /*Reply _again_ to the interaction with inviting user to select a character's quote in the selector
         which will be created. The callback argument will be executed when a value of the
         selector is submitted.
         I insist on the _again_ : please deferReply or reply your interaction before run this function.*/
-        const quotes = (await charService.getCharacterWithName(charName)).quotes||[];
+        const quotes = (await this.characterService.getCharacterWithName(charName)).quotes||[];
         if (quotes.length==0) {
             await interaction.editReply({
                 content:`:confused: **${charName}** n'a aucune réplique enregistrée.`

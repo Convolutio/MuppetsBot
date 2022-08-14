@@ -5,9 +5,10 @@ import { CharacterService } from './characterService';
 export class MyWebhook {
     //Please use init asynchronous method to init the webhook;
     private webhook!:Webhook;
-    private characterService=new CharacterService();
     private currentCharacter!:Character;
     private isInitiated=false;
+
+    constructor(private characterService:CharacterService){}
 
     async init(client:Client, characterName:string):Promise<void> {
         //Init the MyWebhook instance corresponding to the specified character.
