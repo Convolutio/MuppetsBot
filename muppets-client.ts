@@ -12,7 +12,7 @@ export class MuppetsClient {
     private getCommandsObjs():AsyncBuiltCommand[] {
         const commands:AsyncBuiltCommand[] = [];
         const commandsPath = path.join(__dirname, 'commands');
-        const commandsFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".ts"));
+        const commandsFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".ts")||file.endsWith(".js"));
         for (const file of commandsFiles) {
             const filePath = path.join(commandsPath, file);
             const required = require(filePath);

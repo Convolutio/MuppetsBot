@@ -31,6 +31,8 @@ You also must create an sqlite `database.db` file, just by once executing the `u
 ts-node utils/init_db.ts
 ```
 
+**⚠In production :** if you want to compil the typescript project, you must place the database in the built folder. If the database isn't initiated yet, you therefore can run the `utils/init_db.js` script to do that. 
+
 ## Run the BOT
 
 ### ts-node

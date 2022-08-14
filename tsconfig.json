@@ -14,7 +14,7 @@
     "moduleResolution": "Node", // required
     "esModuleInterop": true, // required
     "resolveJsonModule": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
   },
   "exclude": ["node_modules"]
 }
