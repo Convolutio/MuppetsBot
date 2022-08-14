@@ -1,8 +1,8 @@
-# 🤖🎭 Muppets Bot
+# 🤖🎭 Discord Muppets Bot
 
 Language: ![TypeScript](https://img.shields.io/badge/TypeScript-black?style=flat&logo=typescript)
 
-This is a set of commands enabling your bot to create custom characters in a guild and make them tell custom speeches, defined by users.
+This is a set of commands enabling your Discord bot to create custom characters in a guild and make them tell custom speeches, defined by users.
 
 ## List of commands
 
