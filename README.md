@@ -12,6 +12,13 @@ For now, names and description are in french, but the internationalization will 
 
 ## Config
 
+Your bot must have the following scopes in the guild :
+
+- `bot`, with the permissions below :
+  - Manage Webhooks
+  - Send Messages
+- `application.commands`
+
 First and foremost, run `npm install` in the repository's root directory.
 
 You must create in the repository's root directory a `config.json` file following this schema:
@@ -31,7 +38,7 @@ You also must create an sqlite `database.db` file, just by once executing the `u
 ts-node utils/init_db.ts
 ```
 
-**⚠In production :** if you want to compil the typescript project, you must place the database in the built folder. If the database isn't initiated yet, you therefore can run the `utils/init_db.js` script to do that. 
+**⚠In production :** if you want to compil the typescript project, you must place the database in the built folder. If the database isn't initiated yet, you therefore can run the `utils/init_db.js` script to do that.
 
 ## Run the BOT
 
@@ -59,6 +66,7 @@ The `index.ts` file describes an example of use, but we can sum the methodolgy u
 > ```
 >
 > Then, you should once get the commands with this code and make them run like this, thanks to the `getCommandsCollection()` asynchronous method the `MuppetsClient` class provides :
+>
 > ```ts
 > //For instance, in the main.ts file
 > import { MuppetsClient } from './Muppets Bot/muppets-client';
