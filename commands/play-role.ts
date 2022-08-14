@@ -1,12 +1,10 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
-import { MyCommandType } from "../models/command.type";
-import { CharacterService } from '../classes/characterService';
-import { AddQuoteSelector } from "../classes/selectors";
+import { AsyncBuiltCommandMethods } from "../models/command.type";
 
-const command : MyCommandType = {
+export const command:AsyncBuiltCommandMethods = {
     async buildData() {
-        const options = (await (new CharacterService()).getCharactersNames()).map(
+        const options = (await this.muppetsClient.characterService.getCharactersNames()).map(
             name => ({name:name, value:name})
         );
         return new SlashCommandBuilder()
@@ -24,12 +22,11 @@ const command : MyCommandType = {
                 .setRequired(false)
             )
     },
-        
     async execute(interaction:ChatInputCommandInteraction) {
         //The command has been submitted.
         await interaction.reply({content:`En attente du webhook...`,ephemeral:true});
         const charName = interaction.options.getString('personnage', true);
-        const webhook = new MyWebhook();
+        const webhook = new MyWebhook(this.muppetsClient.characterService);
         await webhook.init(interaction.client, charName);
         const channel = await interaction.channel?.fetch();
         if (!channel) throw "Channel information not found. Please try again."
@@ -38,7 +35,7 @@ const command : MyCommandType = {
             await webhook.speak(textContent, channel);
             await interaction.editReply({content:`:+1: Fait !`, components:[]});
         } else {
-            await AddQuoteSelector(
+            await this.muppetsClient.AddQuoteSelector(
                 charName, true, 'selectQuoteToTell', interaction,
                 async i => {
                     await i.deferUpdate();
@@ -49,4 +46,3 @@ const command : MyCommandType = {
         }
     }
 }
-export = command;

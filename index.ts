@@ -1,32 +1,34 @@
-// Import the necessary discord.js classes and other packages
-import { Client, GatewayIntentBits } from 'discord.js';
-import path from 'node:path';
-import fs from 'node:fs';
+// This file can start a bot with just MuppetsClient features.
+// You can use a similar code to easily plug these features to more developed bot.
+import { ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction } from 'discord.js';
 import { token } from './config.json';
-import MyEventBuilder from './models/event.type';
-import deployCommands from './utils/deploy-commands';
+import { MuppetsClient } from './muppets-client';
 
-// Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-
-//Register all events
-const eventsPath = path.join(__dirname, 'events');
-const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.ts'));
+//Handling interaction error
+async function handle(interaction:ChatInputCommandInteraction, error:unknown) {
+    const rep = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
+    try {await interaction.reply(rep)} catch {await interaction.editReply(rep)}
+}
 
 (async () => {
-	//Deploy commands
-	await deployCommands();
-	for (const file of eventFiles) {
-		const filePath = path.join(eventsPath, file);
-		const eventBuilder:MyEventBuilder = require(filePath);
-		const event = await eventBuilder();
-		if (event.once) {
-			client.once(event.name, (...args) => event.execute(...args));
-		} else {
-			client.on(event.name, (...args) => event.execute(...args));
+	//Deploy the MuppetClient commands Collection
+	const muppetsCommands = await (new MuppetsClient())
+		.getCommandsCollection();
+	client.on('interactionCreate', async (i:Interaction) => {
+		//Running commands
+		if (!i.isChatInputCommand()) return ;
+		const selectedCommand = muppetsCommands.get(i.commandName);
+		try {
+			await selectedCommand?.execute(i);
+		} catch(err) {
+			handle(i, err);
 		}
-	}
+	});
+	client.on('ready', async () => {
+		console.log('Ready !')
+	})
 	// Login to Discord with your client's token
 	client.login(token);
 })();

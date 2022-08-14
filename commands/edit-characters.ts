@@ -1,7 +1,6 @@
 import { Attachment, BufferResolvable, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { CharacterService } from "../classes/characterService";
 import { MyWebhook } from "../classes/webhook";
-import { MyCommandType } from "../models/command.type";
+import { AsyncBuiltCommandMethods } from "../models/command.type";
 
 function getAvatar(avatar_url:string|null, avatarAttachment:Attachment|null):BufferResolvable|undefined {
     let avatar:BufferResolvable|undefined;
@@ -12,10 +11,9 @@ function getAvatar(avatar_url:string|null, avatarAttachment:Attachment|null):Buf
     }
     return avatar;
 }
-
-const command:MyCommandType = {
+export const command:AsyncBuiltCommandMethods = {
     async buildData() {
-        const options = (await (new CharacterService()).getCharactersNames())
+        const options = (await this.muppetsClient.characterService.getCharactersNames())
             .map(name => ({name:name, value:name}));
         return new SlashCommandBuilder()
             .setName("personnages")
@@ -70,12 +68,12 @@ const command:MyCommandType = {
                     )
             })
     },
-    async execute(interaction:ChatInputCommandInteraction){
+    async execute (interaction:ChatInputCommandInteraction){
         await interaction.deferReply();
         const subcommand = interaction.options.getSubcommand(true);
         const channel = await interaction.channel?.fetch();
         if (!channel) throw "Channel information not found. Please try again.";
-        const webhook = new MyWebhook();
+        const webhook = new MyWebhook(this.muppetsClient.characterService);
         if (subcommand==="ajouter") {
             const name = interaction.options.getString('nom', true);
             const avatar_url = interaction.options.getString('url_avatar');
@@ -111,4 +109,3 @@ const command:MyCommandType = {
         }
     }
 }
-export=command;

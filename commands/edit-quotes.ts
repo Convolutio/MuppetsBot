@@ -1,11 +1,9 @@
-import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, SelectMenuBuilder, SlashCommandBuilder } from "discord.js";
-import { CharacterService } from "../classes/characterService";
-import { AddQuoteSelector } from '../classes/selectors';
-import { MyCommandType } from "../models/command.type";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { AsyncBuiltCommandMethods } from "../models/command.type";
 
-const command:MyCommandType = {
+export const command:AsyncBuiltCommandMethods = {
     async buildData() {
-        const options = (await (new CharacterService()).getCharactersNames()).map(
+        const options = (await this.muppetsClient.characterService.getCharactersNames()).map(
             name => ({name:name, value:name})
         );
         return new SlashCommandBuilder()
@@ -55,7 +53,7 @@ const command:MyCommandType = {
     },
     async execute(interaction:ChatInputCommandInteraction) {
         await interaction.deferReply();
-        const charService = new CharacterService();
+        const charService = this.muppetsClient.characterService;
         const subcommand = interaction.options.getSubcommand(true);
         const charName = interaction.options.getString('personnage', true);
         if (subcommand === "ajouter") {
@@ -64,7 +62,7 @@ const command:MyCommandType = {
             await interaction.editReply({content:'La nouvelle réplique a été créée avec succès.'});
         } else if (subcommand==="modifier") {
             const new_quote = interaction.options.getString('contenu', true);
-            await AddQuoteSelector(
+            await this.muppetsClient.AddQuoteSelector(
                 charName, false, 'selectQuoteToEdit',interaction,
                 async i => {
                     await i.deferUpdate();
@@ -77,7 +75,7 @@ const command:MyCommandType = {
                 }
             );
         } else if (subcommand==="supprimer") {
-            await AddQuoteSelector(
+            await this.muppetsClient.AddQuoteSelector(
                 charName, false, 'selectQuoteToDelete',interaction,
                 async i => {
                     await i.deferUpdate();
@@ -92,5 +90,3 @@ const command:MyCommandType = {
         }
     }
 }
-
-export = command;
