@@ -28,7 +28,7 @@ export const command:AsyncBuiltCommandMethods = {
         const charName = interaction.options.getString('personnage', true);
         const webhook = new MyWebhook(this.muppetsClient.characterService);
         await webhook.init(interaction.client, charName);
-        const channel = await interaction.channel?.fetch();
+        const channel = interaction.channel;
         if (!channel) throw "Channel information not found. Please try again."
         const textContent = interaction.options.getString('contenu');
         if (textContent) {

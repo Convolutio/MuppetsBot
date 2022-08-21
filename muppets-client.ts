@@ -5,7 +5,6 @@ import { AddQuoteSelector } from "./classes/selectors";
 import path from 'node:path';
 import fs from 'node:fs';
 import { token, clientId, guildId } from "./config.json";
-
 export class MuppetsClient {
     characterService = new CharacterService(this);
 
@@ -30,6 +29,7 @@ export class MuppetsClient {
         const rest = new REST({version:"10"}).setToken(token);
         const commandsJSONData:RESTPostAPIApplicationCommandsJSONBody[] = [];
         try {
+            console.log(`\nMuppets Bot logging :`)
             console.log(`     Requiring commands' data...`);
             const commands = this.getCommandsObjs();
             for (let command of commands) {
@@ -42,6 +42,7 @@ export class MuppetsClient {
                 { body: commandsJSONData}
             );
             console.log("     Successfuly reloaded application (/) commands in this server.")
+            console.log("End of Muppets Bot logging.\n")
         } catch(error) {
             console.error(error);
         }

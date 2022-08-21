@@ -71,7 +71,7 @@ export const command:AsyncBuiltCommandMethods = {
     async execute (interaction:ChatInputCommandInteraction){
         await interaction.deferReply();
         const subcommand = interaction.options.getSubcommand(true);
-        const channel = await interaction.channel?.fetch();
+        const channel = interaction.channel;
         if (!channel) throw "Channel information not found. Please try again.";
         const webhook = new MyWebhook(this.muppetsClient.characterService);
         if (subcommand==="ajouter") {
