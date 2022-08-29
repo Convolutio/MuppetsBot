@@ -1,4 +1,4 @@
-import { Character } from "../models/character";
+import { Character } from "../models/character.type";
 import path from "node:path";
 import { Sequelize, Model, DataTypes, QueryTypes } from "sequelize";
 import { MuppetsClient } from "../muppets-client";

@@ -5,8 +5,15 @@ import { AddQuoteSelector } from "./classes/selectors";
 import path from 'node:path';
 import fs from 'node:fs';
 import { token, clientId, guildId } from "./config.json";
+import {TFunction} from 'i18next';
+import { i18n } from "./i18n/i18n";
 export class MuppetsClient {
-    characterService = new CharacterService(this);
+    public characterService = new CharacterService(this);
+    public i18n!:TFunction;
+
+    constructor(language?:string) {
+        this.i18n = i18n(language);
+    }
 
     private getCommandsObjs():AsyncBuiltCommand[] {
         const commands:AsyncBuiltCommand[] = [];

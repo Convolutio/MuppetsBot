@@ -8,7 +8,6 @@ export const command:AsyncBuiltCommandMethods = {
         );
         return new SlashCommandBuilder()
         .setName('répliques')
-        .setDescription('Ajoute ou supprime une réplique pour un personnage')
         .addSubcommand(subcommand =>
             subcommand.setName("ajouter")
                 .setDescription("Enregistre une nouvelle réplique pour le personnage.")

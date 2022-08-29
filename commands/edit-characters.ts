@@ -17,7 +17,6 @@ export const command:AsyncBuiltCommandMethods = {
             .map(name => ({name:name, value:name}));
         return new SlashCommandBuilder()
             .setName("personnages")
-            .setDescription("Ouvre un formulaire pour ajouter un nouveau personnage à faire parler.")
             .addSubcommand(subcommand => {
                 return subcommand.setName("ajouter")
                 .setDescription("Créez un nouveau personnage en renseignant son futur pseudo et son avatar.")
