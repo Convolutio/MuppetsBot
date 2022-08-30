@@ -15,81 +15,84 @@ export const command:AsyncBuiltCommandMethods = {
     async buildData() {
         const options = (await this.muppetsClient.characterService.getCharactersNames())
             .map(name => ({name:name, value:name}));
+        const i18n = this.muppetsClient.i18n;
         return new SlashCommandBuilder()
-            .setName("personnages")
+            .setName(i18n("characters"))
+            .setDescription(i18n("characters_description"))
             .addSubcommand(subcommand => {
-                return subcommand.setName("ajouter")
-                .setDescription("Créez un nouveau personnage en renseignant son futur pseudo et son avatar.")
+                return subcommand.setName(i18n("add"))
+                .setDescription(i18n("characters$add_description"))
                 .addStringOption(option =>
-                    option.setName('nom')
-                        .setDescription('Entrez le nom de votre nouveau personnage.')
+                    option.setName(i18n('name'))
+                        .setDescription(i18n("characters$add$name_description"))
                         .setRequired(true)
                     )
                 .addStringOption(option =>
-                    option.setName("url_avatar")
-                        .setDescription("(Optionnel) Entrez l'url de son avatar.")
+                    option.setName(i18n("avatarURL"))
+                        .setDescription(i18n("characters$add$avatarURL_description"))
                     )
                 .addAttachmentOption(option =>
-                    option.setName("fichier_avatar")
-                        .setDescription("(Optionnel) Attacher une image en guise d'avatar pour votre nouveau personnage.")
+                    option.setName(i18n("avatarFile"))
+                        .setDescription(i18n("characters$add$avatarFile_description"))
                     )
             })
             .addSubcommand(subcommand =>
-                subcommand.setName('modifier')
-                .setDescription('Éditez un personnage.')
+                subcommand.setName(i18n("edit"))
+                .setDescription(i18n("characters$edit_description"))
                 .addStringOption(option => 
-                    option.setName('personnage')
-                        .setDescription('Entrez le nom du personnage à éditer')
+                    option.setName(i18n("character"))
+                        .setDescription(i18n("characters$edit$character_description"))
                         .setRequired(true)
                         .addChoices(...options)
                 )
                 .addStringOption(option =>
-                    option.setName('nom')
-                        .setDescription('(Optionnel) Entrez le nouveau nom du personnage.')
+                    option.setName(i18n('name'))
+                        .setDescription(i18n("characters$edit$name_description"))
                     )
                 .addStringOption(option =>
-                    option.setName("url_avatar")
-                        .setDescription("(Optionnel) Entrez l'url de son avatar.")
+                    option.setName(i18n("avatarURL"))
+                        .setDescription(i18n("characters$edit$avatarURL_description"))
                     )
                 .addAttachmentOption(option =>
-                    option.setName("fichier_avatar")
-                        .setDescription("(Optionnel) Attacher une image en guise d'avatar pour votre nouveau personnage.")
+                    option.setName(i18n("avatarFile"))
+                        .setDescription(i18n("characters$edit$avatarFile_description"))
                     )
             )
             .addSubcommand(subcommand => {
-                return subcommand.setName("supprimer")
-                .setDescription('Supprimez un personnage')
+                return subcommand.setName(i18n("remove"))
+                .setDescription(i18n("characters$remove_description"))
                 .addStringOption(option =>
-                    option.setName("personnage")
-                        .setDescription("Renseignez le personnage à effacer.")
+                    option.setName(i18n("character"))
+                        .setDescription(i18n("characters$remove$character_description"))
                         .setRequired(true)
                         .addChoices(...options)
                     )
             })
     },
     async execute (interaction:ChatInputCommandInteraction){
+        const i18n = this.muppetsClient.i18n;
         await interaction.deferReply();
         const subcommand = interaction.options.getSubcommand(true);
         const channel = interaction.channel;
         if (!channel) throw "Channel information not found. Please try again.";
         const webhook = new MyWebhook(this.muppetsClient.characterService);
-        if (subcommand==="ajouter") {
-            const name = interaction.options.getString('nom', true);
-            const avatar_url = interaction.options.getString('url_avatar');
-            const avatarAttachment = interaction.options.getAttachment('fichier_avatar');
+        if (subcommand===i18n("add")) {
+            const name = interaction.options.getString(i18n("name"), true);
+            const avatar_url = interaction.options.getString(i18n("avatarURL"));
+            const avatarAttachment = interaction.options.getAttachment(i18n("avatarFile"));
             const avatar = getAvatar(avatar_url, avatarAttachment)
-            if (!avatar) throw "L'avatar n'a pas pu être traité. Réessayez avec une option valide";
+            if (!avatar) throw i18n("invalidAvatar_error");
             const character = {
                 name:name,
                 avatar:avatar
             }
             await webhook.create(channel, character);
-            await interaction.editReply(`Le nouveau personnage **${character.name}** a été créé !`);
-        } else if (subcommand==="modifier"){
-            const charName = interaction.options.getString('personnage', true);
-            const name = interaction.options.getString('nom');
-            const avatar_url = interaction.options.getString('url_avatar');
-            const avatarAttachment = interaction.options.getAttachment('fichier_avatar');
+            await interaction.editReply(i18n("characterCreated_log", {charName:character.name}));
+        } else if (subcommand===i18n("edit")){
+            const charName = interaction.options.getString(i18n("character"), true);
+            const name = interaction.options.getString(i18n("name"));
+            const avatar_url = interaction.options.getString(i18n("avatarURL"));
+            const avatarAttachment = interaction.options.getAttachment(i18n("avatarFile"));
             const newAvatar = getAvatar(avatar_url, avatarAttachment);
             const character = {
                 name:name||undefined,
@@ -97,13 +100,13 @@ export const command:AsyncBuiltCommandMethods = {
             }
             await webhook.init(interaction.client, charName);
             await webhook.editCharacter(character);
-            await interaction.editReply(`Le personnage **${charName}** a été édité avec succès.`);
-        } else if (subcommand==="supprimer"){
-            const charName = interaction.options.getString('personnage', true);
+            await interaction.editReply(i18n("characterEdited_log", {charName:charName}));
+        } else if (subcommand===i18n("remove")){
+            const charName = interaction.options.getString(i18n("character"), true);
             await webhook.init(interaction.client, charName);
             await webhook.delete();
             await interaction.editReply({
-                content:`:+1: Le personnage **${charName}** a été supprimé avec succès !`
+                content:i18n("characterDeleted_log", {charName:charName})
             });
         }
     }

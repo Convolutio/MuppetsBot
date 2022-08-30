@@ -22,12 +22,12 @@ const to_export = {
         const quotes = (await this.characterService.getCharacterWithName(charName)).quotes||[];
         if (quotes.length==0) {
             await interaction.editReply({
-                content:`:confused: **${charName}** n'a aucune réplique enregistrée.`
+                content:this.i18n("noSavedQuote_error", {charName:charName})
             });
         }
         else {
             const rows = [selector(
-                customId, "Sélectionnez la réplique pré-enregistrée",...quotes.map(
+                customId, this.i18n("selectorPlaceholder"),...quotes.map(
                 quote_obj => {
                     const quote = quote_obj.quote;
                     const label:string=quote.length>50?quote.slice(0,47)+'...':quote; 
@@ -38,7 +38,7 @@ const to_export = {
                 }
             ))];
             const msg = await interaction.editReply({
-                content:`Veuillez sélectionner la réplique.`,
+                content:this.i18n("selectorMessage"),
                 components:rows,
             });
             msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})

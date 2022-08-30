@@ -65,5 +65,11 @@ export class MuppetsClient {
         return commands;
     }
 
+    async changeLanguage(language:string) {
+        this.i18n = i18n(language);
+        console.log("Changing MuppetsClient language...")
+        await this.deployCommands();
+    }
+
     AddQuoteSelector = AddQuoteSelector;
 }
