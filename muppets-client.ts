@@ -10,6 +10,8 @@ import { i18n } from "./i18n/i18n";
 export class MuppetsClient {
     public characterService = new CharacterService(this);
     public i18n!:TFunction;
+    private commands_ids:string[]=[];
+    private rest=(new REST({version:'10'})).setToken(token);
 
     constructor(language?:string) {
         this.i18n = i18n(language);
@@ -33,8 +35,8 @@ export class MuppetsClient {
     }
 
     async deployCommands() {
-        const rest = new REST({version:"10"}).setToken(token);
         const commandsJSONData:RESTPostAPIApplicationCommandsJSONBody[] = [];
+        this.commands_ids = []; 
         try {
             console.log(`\nMuppets Bot logging :`)
             console.log(`     Requiring commands' data...`);
@@ -44,10 +46,13 @@ export class MuppetsClient {
                 commandsJSONData.push(data.toJSON());
             }
             console.log(`     Started refreshing application (/) commands in ${guildId} guild.`);
-            await rest.put(
-                Routes.applicationGuildCommands(clientId, guildId),
-                { body: commandsJSONData}
-            );
+            await Promise.all(commandsJSONData.map(async commandJSONData => {
+                const res:any = await this.rest.post(
+                    Routes.applicationGuildCommands(clientId, guildId),
+                    { body: commandJSONData }
+                );
+                this.commands_ids.push(res.id);
+            }));
             console.log("     Successfuly reloaded application (/) commands in this server.")
             console.log("End of Muppets Bot logging.\n")
         } catch(error) {
@@ -66,10 +71,13 @@ export class MuppetsClient {
     }
 
     async changeLanguage(language:string) {
+        console.log("Changing MuppetsClient language...");
+        Promise.all(this.commands_ids.map(async command_id => {
+            await this.rest.delete(Routes.applicationGuildCommand(clientId, guildId, command_id))
+        }));
         this.i18n = i18n(language);
-        console.log("Changing MuppetsClient language...")
         await this.deployCommands();
     }
 
-    AddQuoteSelector = AddQuoteSelector;
+    public AddQuoteSelector = AddQuoteSelector;
 }

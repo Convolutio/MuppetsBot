@@ -24,8 +24,7 @@ const to_export = {
             await interaction.editReply({
                 content:this.i18n("noSavedQuote_error", {charName:charName})
             });
-        }
-        else {
+        } else {
             const rows = [selector(
                 customId, this.i18n("selectorPlaceholder"),...quotes.map(
                 quote_obj => {
