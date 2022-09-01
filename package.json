@@ -2,6 +2,7 @@
   "dependencies": {
     "@discordjs/rest": "^1.0.1",
     "discord.js": "^14.1.2",
+    "i18next": "^21.9.1",
     "sequelize": "^6.21.3",
     "sqlite3": "^5.0.11"
   },
@@ -16,6 +17,5 @@
     "dev": "ts-node ./index.ts",
     "start": "ts-node ./build/index.js",
     "build": "tsc -p ."
-
   }
 }

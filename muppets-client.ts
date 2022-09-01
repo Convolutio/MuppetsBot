@@ -5,8 +5,18 @@ import { AddQuoteSelector } from "./classes/selectors";
 import path from 'node:path';
 import fs from 'node:fs';
 import { token, clientId, guildId } from "./config.json";
+import {TFunction} from 'i18next';
+import { i18n_build, i18n } from "./i18n/i18n";
+import { DISCORD_LANGUAGE } from "./models/translation.type";
 export class MuppetsClient {
-    characterService = new CharacterService(this);
+    public characterService = new CharacterService(this);
+    public i18n!:TFunction;
+    private commands_ids:string[]=[];
+    private rest=(new REST({version:'10'})).setToken(token);
+
+    constructor(language?:DISCORD_LANGUAGE) {
+        this.i18n = i18n(language);
+    }
 
     private getCommandsObjs():AsyncBuiltCommand[] {
         const commands:AsyncBuiltCommand[] = [];
@@ -26,8 +36,8 @@ export class MuppetsClient {
     }
 
     async deployCommands() {
-        const rest = new REST({version:"10"}).setToken(token);
         const commandsJSONData:RESTPostAPIApplicationCommandsJSONBody[] = [];
+        this.commands_ids = []; 
         try {
             console.log(`\nMuppets Bot logging :`)
             console.log(`     Requiring commands' data...`);
@@ -37,10 +47,13 @@ export class MuppetsClient {
                 commandsJSONData.push(data.toJSON());
             }
             console.log(`     Started refreshing application (/) commands in ${guildId} guild.`);
-            await rest.put(
-                Routes.applicationGuildCommands(clientId, guildId),
-                { body: commandsJSONData}
-            );
+            await Promise.all(commandsJSONData.map(async commandJSONData => {
+                const res:any = await this.rest.post(
+                    Routes.applicationGuildCommands(clientId, guildId),
+                    { body: commandJSONData }
+                );
+                this.commands_ids.push(res.id);
+            }));
             console.log("     Successfuly reloaded application (/) commands in this server.")
             console.log("End of Muppets Bot logging.\n")
         } catch(error) {
@@ -58,5 +71,11 @@ export class MuppetsClient {
         return commands;
     }
 
-    AddQuoteSelector = AddQuoteSelector;
+    async changeLanguage(language:DISCORD_LANGUAGE) {
+        this.i18n = i18n(language);
+        console.log("MuppetsClient language has been changed...");
+    }
+
+    public AddQuoteSelector = AddQuoteSelector;
+    public i18n_build = i18n_build;
 }

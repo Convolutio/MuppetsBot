@@ -1,5 +1,5 @@
 import { BufferResolvable, Client, TextBasedChannel, Webhook } from 'discord.js';
-import { Character } from '../models/character';
+import { Character } from '../models/character.type';
 import { CharacterService } from './characterService';
 
 export class MyWebhook {
