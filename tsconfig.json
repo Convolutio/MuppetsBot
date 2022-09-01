@@ -19,7 +19,6 @@
   "include":[
     "**/*.json",
     "**/*.ts",
-    "./database.db"
   ],
   "exclude": ["node_modules", "tsconfig.json"]
 }
