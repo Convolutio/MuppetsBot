@@ -90,18 +90,20 @@ This is a manual task (normally useless) which can be carried out by executing t
 
 ![Commands List](./assets/internationalization_demo.png)
 
-All the commands names, descriptions, logs and options are translatable in other languages. To display another language than english, you must specify the language as a `MuppetsClient` constructor's argument. There is also an asynchronous `changeLanguage` method to change the language to be displayed (be free to call it whenever you want, for instance in a command changing your bot's language).
+All the commands names, descriptions, and options are translatable in other languages, according to the system language user has chosen for Discord.
+
+However, logging BOT messages' language must be set according to the guild where the BOT is. Therefore, to display another language than english for this kind of content, you must set up the language thanks to a `MuppetsClient` constructor's argument. There is also an asynchronous `changeLanguage` method to do that whenever it should be done (be free to call it for instance in a command changing your bot's language).
 
 ```ts
 //if nothing is specified, English will be chosen
 const muppetsClient = new MuppetsClient('fr');
 //...
-await muppetsClient.changeLanguage('en');
+await muppetsClient.changeLanguage('en-US');
 ```
 
-### Supported languages
+### 🇫🇷 🇺🇸 Supported languages
 
-Just french (`"fr"` option) and english (`"en"` option) is here supported, but adding other languages is quite easy :
+Just french (`"fr"` option) and english (`"en-US"` option) is here supported, but adding other languages is quite easy :
 
-1. In the repository's `/i18n` folder, duplicate the `/en` folder and rename it with the abbreviation of the language you want to add.
+1. In the repository's `/i18n` folder, duplicate the `/en` folder and rename it with the abbreviation of the language you want to add (this abbreviation must be among [the languages Discord supports](https://discord.com/developers/docs/reference#locales)).
 2. Then, overwrite each value of `translation.json` file with the sentences in the language to be added (I advise to be careful to keep interpolation in the sentences, if it is present).
