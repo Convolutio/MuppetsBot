@@ -10,8 +10,8 @@ const options = [
     "character",
     "content",
     "name",
-    "avatarURL",
-    "avatarFile",
+    "avatar_url",
+    "avatar_file",
     //commands description
     "play_description",
     "characters_description",
@@ -53,8 +53,42 @@ const options = [
     "selectorPlaceholder",
     "selectorMessage",
 ] as const;
-type Option = typeof options[number];
-
-export type MuppetsClientTranslationType = {
-    [keys in Option]: string;
-};
+export type i18nKey = typeof options[number];
+export type DISCORD_LANGUAGE = 'en-US' | 'en-GB' | 'bg' | 'zh-CN' | 'zh-TW' | 'hr' | 'cs' | 'da' | 'nl' | 'fi' | 'fr' | 'de' | 'el' | 'hi' | 'hu' | 'it' | 'ja' | 'ko' | 'lt' | 'no' | 'pl' | 'pt-BR' | 'ro' | 'ru' | 'es-ES' | 'sv-SE' | 'th' | 'tr' | 'uk' | 'vi';
+const DISCORD_LANGUAGES = [
+    "da",
+    "de",
+    "en-GB",
+    "en-US",
+    "es-ES",
+    "fr",
+    "hr",
+    "it",
+    "lt",
+    "hu",
+    "nl",
+    "no",
+    "pl",
+    "pt-BR",
+    "ro",
+    "fi",
+    "sv-SE",
+    "vi",
+    "tr",
+    "cs",
+    "el",
+    "bg",
+    "ru",
+    "uk",
+    "hi",
+    "th",
+    "zh-CN",
+    "ja",
+    "zh-TW",
+    "ko"
+  ];
+export function is_DISCORD_LANGUAGE(str:string):str is DISCORD_LANGUAGE {
+  return DISCORD_LANGUAGES.includes(str);
+}
+export type Localizations = Partial<Record<DISCORD_LANGUAGE, string|null>>;
+export type MuppetsClientTranslationType = Record<i18nKey, string>

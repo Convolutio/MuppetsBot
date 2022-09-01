@@ -6,14 +6,15 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { token, clientId, guildId } from "./config.json";
 import {TFunction} from 'i18next';
-import { i18n } from "./i18n/i18n";
+import { i18n_build, i18n } from "./i18n/i18n";
+import { DISCORD_LANGUAGE } from "./models/translation.type";
 export class MuppetsClient {
     public characterService = new CharacterService(this);
     public i18n!:TFunction;
     private commands_ids:string[]=[];
     private rest=(new REST({version:'10'})).setToken(token);
 
-    constructor(language?:string) {
+    constructor(language?:DISCORD_LANGUAGE) {
         this.i18n = i18n(language);
     }
 
@@ -70,14 +71,12 @@ export class MuppetsClient {
         return commands;
     }
 
-    async changeLanguage(language:string) {
+    async changeLanguage(language:DISCORD_LANGUAGE) {
         console.log("Changing MuppetsClient language...");
-        Promise.all(this.commands_ids.map(async command_id => {
-            await this.rest.delete(Routes.applicationGuildCommand(clientId, guildId, command_id))
-        }));
         this.i18n = i18n(language);
         await this.deployCommands();
     }
 
     public AddQuoteSelector = AddQuoteSelector;
+    public i18n_build = i18n_build;
 }

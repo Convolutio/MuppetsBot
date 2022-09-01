@@ -15,59 +15,49 @@ export const command:AsyncBuiltCommandMethods = {
     async buildData() {
         const options = (await this.muppetsClient.characterService.getCharactersNames())
             .map(name => ({name:name, value:name}));
-        const i18n = this.muppetsClient.i18n;
-        return new SlashCommandBuilder()
-            .setName(i18n("characters"))
-            .setDescription(i18n("characters_description"))
-            .addSubcommand(subcommand => {
-                return subcommand.setName(i18n("add"))
-                .setDescription(i18n("characters$add_description"))
+        const i18n_b = this.muppetsClient.i18n_build;
+        return i18n_b(
+            new SlashCommandBuilder(),
+            "characters",
+            "characters_description")
+            .addSubcommand(subcommand =>
+                i18n_b(subcommand, "add", "characters$add_description") 
                 .addStringOption(option =>
-                    option.setName(i18n('name'))
-                        .setDescription(i18n("characters$add$name_description"))
+                    i18n_b(option, "name", "characters$add$name_description")
                         .setRequired(true)
                     )
                 .addStringOption(option =>
-                    option.setName(i18n("avatarURL"))
-                        .setDescription(i18n("characters$add$avatarURL_description"))
+                    i18n_b(option, "avatar_url", "characters$add$avatarURL_description")
                     )
                 .addAttachmentOption(option =>
-                    option.setName(i18n("avatarFile"))
-                        .setDescription(i18n("characters$add$avatarFile_description"))
+                    i18n_b(option, "avatar_file", "characters$add$avatarFile_description")
                     )
-            })
+            )
             .addSubcommand(subcommand =>
-                subcommand.setName(i18n("edit"))
-                .setDescription(i18n("characters$edit_description"))
+                i18n_b(subcommand, "edit", "characters$edit_description")
                 .addStringOption(option => 
-                    option.setName(i18n("character"))
-                        .setDescription(i18n("characters$edit$character_description"))
+                    i18n_b(option, "character", "characters$edit$character_description")
                         .setRequired(true)
                         .addChoices(...options)
                 )
                 .addStringOption(option =>
-                    option.setName(i18n('name'))
-                        .setDescription(i18n("characters$edit$name_description"))
-                    )
+                    i18n_b(option, "name", "characters$edit$name_description")
+                )
                 .addStringOption(option =>
-                    option.setName(i18n("avatarURL"))
-                        .setDescription(i18n("characters$edit$avatarURL_description"))
-                    )
+                    i18n_b(option, "avatar_url", "characters$edit$avatarURL_description")
+                )
                 .addAttachmentOption(option =>
-                    option.setName(i18n("avatarFile"))
-                        .setDescription(i18n("characters$edit$avatarFile_description"))
-                    )
+                    i18n_b(option, "avatar_file", "characters$edit$avatarFile_description")
+                )
             )
-            .addSubcommand(subcommand => {
-                return subcommand.setName(i18n("remove"))
-                .setDescription(i18n("characters$remove_description"))
+            .addSubcommand(subcommand => 
+                i18n_b(subcommand, "remove", "characters$remove_description")
                 .addStringOption(option =>
-                    option.setName(i18n("character"))
-                        .setDescription(i18n("characters$remove$character_description"))
+                    i18n_b(option, "character", "characters$remove$character_description")
                         .setRequired(true)
                         .addChoices(...options)
-                    )
-            })
+                )
+            )
     },
     async execute (interaction:ChatInputCommandInteraction){
         const i18n = this.muppetsClient.i18n;
@@ -76,10 +66,10 @@ export const command:AsyncBuiltCommandMethods = {
         const channel = interaction.channel;
         if (!channel) throw "Channel information not found. Please try again.";
         const webhook = new MyWebhook(this.muppetsClient.characterService);
-        if (subcommand===i18n("add")) {
-            const name = interaction.options.getString(i18n("name"), true);
-            const avatar_url = interaction.options.getString(i18n("avatarURL"));
-            const avatarAttachment = interaction.options.getAttachment(i18n("avatarFile"));
+        if (subcommand==="add") {
+            const name = interaction.options.getString("name", true);
+            const avatar_url = interaction.options.getString("avatarURL");
+            const avatarAttachment = interaction.options.getAttachment("avatarFile");
             const avatar = getAvatar(avatar_url, avatarAttachment)
             if (!avatar) throw i18n("invalidAvatar_error");
             const character = {
@@ -89,10 +79,10 @@ export const command:AsyncBuiltCommandMethods = {
             await webhook.create(channel, character);
             await interaction.editReply(i18n("characterCreated_log", {charName:character.name}));
         } else if (subcommand===i18n("edit")){
-            const charName = interaction.options.getString(i18n("character"), true);
-            const name = interaction.options.getString(i18n("name"));
-            const avatar_url = interaction.options.getString(i18n("avatarURL"));
-            const avatarAttachment = interaction.options.getAttachment(i18n("avatarFile"));
+            const charName = interaction.options.getString("character", true);
+            const name = interaction.options.getString("name");
+            const avatar_url = interaction.options.getString("avatarURL");
+            const avatarAttachment = interaction.options.getAttachment("avatarFile");
             const newAvatar = getAvatar(avatar_url, avatarAttachment);
             const character = {
                 name:name||undefined,
@@ -102,7 +92,7 @@ export const command:AsyncBuiltCommandMethods = {
             await webhook.editCharacter(character);
             await interaction.editReply(i18n("characterEdited_log", {charName:charName}));
         } else if (subcommand===i18n("remove")){
-            const charName = interaction.options.getString(i18n("character"), true);
+            const charName = interaction.options.getString("character", true);
             await webhook.init(interaction.client, charName);
             await webhook.delete();
             await interaction.editReply({
