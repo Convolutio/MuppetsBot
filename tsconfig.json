@@ -16,5 +16,10 @@
     "resolveJsonModule": true,
     "noImplicitThis": true,
   },
-  "exclude": ["node_modules"]
+  "include":[
+    "**/*.json",
+    "**/*.ts",
+    "./database.db"
+  ],
+  "exclude": ["node_modules", "tsconfig.json"]
 }

@@ -68,8 +68,8 @@ export const command:AsyncBuiltCommandMethods = {
         const webhook = new MyWebhook(this.muppetsClient.characterService);
         if (subcommand==="add") {
             const name = interaction.options.getString("name", true);
-            const avatar_url = interaction.options.getString("avatarURL");
-            const avatarAttachment = interaction.options.getAttachment("avatarFile");
+            const avatar_url = interaction.options.getString("avatar_url");
+            const avatarAttachment = interaction.options.getAttachment("avatar_file");
             const avatar = getAvatar(avatar_url, avatarAttachment)
             if (!avatar) throw i18n("invalidAvatar_error");
             const character = {
@@ -81,8 +81,8 @@ export const command:AsyncBuiltCommandMethods = {
         } else if (subcommand===i18n("edit")){
             const charName = interaction.options.getString("character", true);
             const name = interaction.options.getString("name");
-            const avatar_url = interaction.options.getString("avatarURL");
-            const avatarAttachment = interaction.options.getAttachment("avatarFile");
+            const avatar_url = interaction.options.getString("avatar_url");
+            const avatarAttachment = interaction.options.getAttachment("avatar_file");
             const newAvatar = getAvatar(avatar_url, avatarAttachment);
             const character = {
                 name:name||undefined,
