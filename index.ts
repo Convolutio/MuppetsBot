@@ -16,22 +16,26 @@ async function handle(interaction:ChatInputCommandInteraction, error:unknown) {
 
 (async () => {
 	await setRegion_command.deploy(["en-US", "fr"]);
+
 	//Deploy the MuppetClient commands Collection
 	const muppetsClient = new MuppetsClient();
 	const muppetsCommands = await muppetsClient.getCommandsCollection();
+	
+	//Running MuppetsClient commands + another command
 	client.on('interactionCreate', async (i:Interaction) => {
-		//Running commands
 		if (!i.isChatInputCommand()) return ;
 		const selectedCommand = muppetsCommands.get(i.commandName);
 		try {
 			await selectedCommand?.execute(i);
+
 			if (i.commandName === "set_region") {
 				await i.deferReply();
 				const language =  i.options.getString("language", true);
 				if (is_DISCORD_LANGUAGE(language)) {
 					await muppetsClient.changeLanguage(language);
+					await i.editReply({content:`:earth_africa: The language has been successfully set up to \`${language}\`.`})
+					return;
 				}
-				await i.editReply({content:":earth_africa: The language has been successfully set up."})
 			}
 		} catch(err) {
 			handle(i, err);

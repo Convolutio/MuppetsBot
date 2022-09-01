@@ -72,9 +72,8 @@ export class MuppetsClient {
     }
 
     async changeLanguage(language:DISCORD_LANGUAGE) {
-        console.log("Changing MuppetsClient language...");
         this.i18n = i18n(language);
-        await this.deployCommands();
+        console.log("MuppetsClient language has been changed...");
     }
 
     public AddQuoteSelector = AddQuoteSelector;
