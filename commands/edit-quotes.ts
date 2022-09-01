@@ -48,11 +48,11 @@ export const command:AsyncBuiltCommandMethods = {
         const charService = this.muppetsClient.characterService;
         const subcommand = interaction.options.getSubcommand(true);
         const charName = interaction.options.getString("character", true);
-        if (subcommand === i18n("add")) {
+        if (subcommand ==="add") {
             const quote = interaction.options.getString("content", true);
             await charService.addQuote(charName, quote);
             await interaction.editReply({content:i18n("quoteAdded_log")});
-        } else if (subcommand===i18n("edit")) {
+        } else if (subcommand==="edit") {
             const new_quote = interaction.options.getString("content", true);
             await this.muppetsClient.AddQuoteSelector(
                 charName, false, 'selectQuoteToEdit',interaction,
@@ -66,7 +66,7 @@ export const command:AsyncBuiltCommandMethods = {
                     });
                 }
             );
-        } else if (subcommand===i18n("remove")) {
+        } else if (subcommand==="remove") {
             await this.muppetsClient.AddQuoteSelector(
                 charName, false, 'selectQuoteToDelete',interaction,
                 async i => {

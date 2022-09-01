@@ -78,7 +78,7 @@ export const command:AsyncBuiltCommandMethods = {
             }
             await webhook.create(channel, character);
             await interaction.editReply(i18n("characterCreated_log", {charName:character.name}));
-        } else if (subcommand===i18n("edit")){
+        } else if (subcommand==="edit"){
             const charName = interaction.options.getString("character", true);
             const name = interaction.options.getString("name");
             const avatar_url = interaction.options.getString("avatar_url");
@@ -91,7 +91,7 @@ export const command:AsyncBuiltCommandMethods = {
             await webhook.init(interaction.client, charName);
             await webhook.editCharacter(character);
             await interaction.editReply(i18n("characterEdited_log", {charName:charName}));
-        } else if (subcommand===i18n("remove")){
+        } else if (subcommand==="remove"){
             const charName = interaction.options.getString("character", true);
             await webhook.init(interaction.client, charName);
             await webhook.delete();
