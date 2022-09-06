@@ -1,5 +1,5 @@
 import { REST, Routes, SlashCommandBuilder } from "discord.js";
-import {token, clientId, guildId } from '../config.json'
+import {token, clientId, guildId } from '../../config.json'
 
 export const setRegion_command = {
     async deploy(availableLanguages:string[]) {

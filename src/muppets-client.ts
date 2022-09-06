@@ -1,10 +1,10 @@
-import { Collection, REST, RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord.js"
+import { ChatInputCommandInteraction, Collection, Interaction, REST, RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord.js"
 import { CharacterService } from "./classes/characterService"
 import { AsyncBuiltCommand, AsyncBuiltCommandMethods } from "./models/command.type";
 import { AddQuoteSelector } from "./classes/selectors";
 import path from 'node:path';
 import fs from 'node:fs';
-import { token, clientId, guildId } from "./config.json";
+import { token, clientId, guildId } from "../config.json";
 import {TFunction} from 'i18next';
 import { i18n_build, i18n } from "./i18n/i18n";
 import { DISCORD_LANGUAGE } from "./models/translation.type";
@@ -13,9 +13,15 @@ export class MuppetsClient {
     public i18n!:TFunction;
     private commands_ids:string[]=[];
     private rest=(new REST({version:'10'})).setToken(token);
+    private commands!:Collection<string, AsyncBuiltCommand>;
 
     constructor(language?:DISCORD_LANGUAGE) {
         this.i18n = i18n(language);
+    }
+
+    private handle_error(interaction:ChatInputCommandInteraction, error:unknown) {
+        const rep = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
+        try {interaction.reply(rep)} catch {interaction.editReply(rep)}
     }
 
     private getCommandsObjs():AsyncBuiltCommand[] {
@@ -61,14 +67,30 @@ export class MuppetsClient {
         }
     }
 
-    async getCommandsCollection():Promise<Collection<string, AsyncBuiltCommand>> {
+    async initCommandsCollection():Promise<void> {
         const commands = new Collection<string, AsyncBuiltCommand>();
         await this.deployCommands();
         await Promise.all(this.getCommandsObjs().map(async command => {
             const name = (await command.buildData()).name;
             commands.set(name, command); 
         }));
-        return commands;
+        this.commands = commands;
+    }
+
+    treat(interaction:Interaction) {
+        if (!(interaction.isChatInputCommand()||interaction.isAutocomplete())) return;
+		const selectedCommand = this.commands.get(interaction.commandName);
+        if (!selectedCommand) return;
+		if (interaction.isAutocomplete() && selectedCommand.autocomplete) {
+			selectedCommand.autocomplete(interaction);
+			return;
+		} else if (interaction.isChatInputCommand()) {
+            try {
+                selectedCommand.execute(interaction);
+            } catch(error) {
+                this.handle_error(interaction, error);
+            }
+        }
     }
 
     async changeLanguage(language:DISCORD_LANGUAGE) {

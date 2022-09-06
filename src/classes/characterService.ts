@@ -25,7 +25,7 @@ export class CharacterService {
     private db!:Sequelize;
 
     constructor(private muppetClient:MuppetsClient) {
-        const db_path = path.join(__dirname, '..', "database.db");
+        const db_path = path.join(__dirname, '../..', "database.db");
         this.db = new Sequelize({
             dialect:'sqlite',
             storage:db_path,
