@@ -41,6 +41,7 @@
         "characterEdited_log":"Le personnage **{{charName}}** a été édité avec succès.",
         "characterDeleted_log":"Vous pouvez dire \"Adieu !\" à **{{charName}}** ||(parce qu'il a été supprimé :shushing_face:)||.",
         "invalidAvatar_error":"L'avatar n'a pas pu être traité. Réessayez avec une option valide",
+        "characterNotFound_error":":confused: **{{charName}}** n'a pas été trouvé. Si vous voulez trouvez votre bonheur :grin:, on vous invite à entrer un nom parmi les suggérés ou bien à créer un nouveau personnage !",
         "quoteAdded_log":"La nouvelle réplique a été créée avec succès.",
         "quoteRemoved_log":":+1: La citation sélectionnée de **{{charName}}** a été supprimée avec succès.",
         "quoteEdited_log":":+1: La citation sélectionnée de **{{charName}}** a été éditée avec succès.",

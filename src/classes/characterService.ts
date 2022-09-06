@@ -69,6 +69,16 @@ export class CharacterService {
         }, {sequelize:this.db, modelName:'quotes'});
     };
 
+    private async checkCorrectCharName(name:string):Promise<db_Character> {
+        const row = await this.db.query<db_Character>(`SELECT * FROM characters WHERE characters.name="${name}"`,
+            {type:QueryTypes.SELECT, plain:true});
+        if (!row) throw {
+            name:"characterNotFoundError",
+            message:this.muppetClient.i18n("characterNotFound_error", {charName:name})
+        }
+        return row
+    }
+
     private async buildCharacter(data:db_Character):Promise<Character> {
         const character:Character={
             name:data.name,
@@ -89,18 +99,18 @@ export class CharacterService {
             .map(value => value.name);
     };
     async getCharacterWithName(name:string): Promise<Character> {
-        const row = await this.db.query<db_Character>(`SELECT * FROM characters WHERE characters.name="${name}"`,
-            {type:QueryTypes.SELECT, plain:true});
-        if (!row) throw `Character with "${name}" name not found.`;
+        const row = await this.checkCorrectCharName(name);
         return await this.buildCharacter(row);
     };
 
     async addQuote(characterName:string, quote:string) {
+        await this.checkCorrectCharName(characterName);
         await this.db.query(
-        `INSERT INTO quotes (quote, author_whkId) VALUES
-        ("${quote}",
-        (SELECT whkId FROM characters WHERE name="${characterName}"));`,
-        {type:QueryTypes.INSERT});
+            `INSERT INTO quotes (quote, author_whkId) VALUES
+            ("${quote}",
+            (SELECT whkId FROM characters WHERE name="${characterName}"));`,
+            {type:QueryTypes.INSERT}
+        );
     };
     async deleteQuote(quote_id:number){
         await this.db.query(
@@ -128,6 +138,7 @@ export class CharacterService {
         await this.muppetClient.deployCommands();
     };
     async deleteCharacter(characterName:string) {
+        await this.checkCorrectCharName(characterName);
         await this.db.query(
             `DELETE FROM quotes
             WHERE quotes.author_whkId=(SELECT whkId FROM characters
@@ -137,8 +148,7 @@ export class CharacterService {
         await this.db.query(
             `DELETE FROM characters
                 WHERE name="${characterName}";`,
-            {type:QueryTypes.DELETE})
-        await this.muppetClient.deployCommands();
+            {type:QueryTypes.DELETE});
     };
     async editCharacterName(whkId:string, newName:string) {
         await this.db.query(
@@ -147,8 +157,5 @@ export class CharacterService {
                 WHERE whkId="${whkId}"`,
             {type:QueryTypes.UPDATE}
         );
-        await this.muppetClient.deployCommands();
     };
-
-
 }

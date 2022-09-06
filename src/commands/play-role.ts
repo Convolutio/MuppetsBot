@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
 import { AsyncBuiltCommandMethods } from "../models/command.type";
 
@@ -20,12 +20,7 @@ export const command:AsyncBuiltCommandMethods = {
             )
     },
     async autocomplete(interaction) {
-        const options = (await this.muppetsClient.characterService.getCharactersNames()).map(
-            name => ({name:name, value:name})
-        );
-        const characterFocusedValue = interaction.options.getFocused();
-        const filtered = options.filter(choice => choice.name.toLowerCase().includes(characterFocusedValue.toLowerCase()));
-        await interaction.respond(filtered);
+        this.muppetsClient.characterAutocomplete(interaction)
     },
     async execute(interaction) {
         //The command has been submitted.
