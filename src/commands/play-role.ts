@@ -20,7 +20,6 @@ export const command:AsyncBuiltCommandMethods = {
             )
     },
     async autocomplete(interaction) {
-        console.log('Je suis là')
         const options = (await this.muppetsClient.characterService.getCharactersNames()).map(
             name => ({name:name, value:name})
         );
