@@ -13,8 +13,6 @@ function getAvatar(avatar_url:string|null, avatarAttachment:Attachment|null):Buf
 }
 export const command:AsyncBuiltCommandMethods = {
     async buildData() {
-        const options = (await this.muppetsClient.characterService.getCharactersNames())
-            .map(name => ({name:name, value:name}));
         const i18n_b = this.muppetsClient.i18n_build;
         return i18n_b(
             new SlashCommandBuilder(),
@@ -38,7 +36,7 @@ export const command:AsyncBuiltCommandMethods = {
                 .addStringOption(option => 
                     i18n_b(option, "character", "characters$edit$character_description")
                         .setRequired(true)
-                        .addChoices(...options)
+                        .setAutocomplete(true)
                 )
                 .addStringOption(option =>
                     i18n_b(option, "name", "characters$edit$name_description")
@@ -55,9 +53,12 @@ export const command:AsyncBuiltCommandMethods = {
                 .addStringOption(option =>
                     i18n_b(option, "character", "characters$remove$character_description")
                         .setRequired(true)
-                        .addChoices(...options)
+                        .setAutocomplete(true)
                 )
             )
+    },
+    async autocomplete(interaction) {
+        this.muppetsClient.characterAutocomplete(interaction);
     },
     async execute (interaction:ChatInputCommandInteraction){
         const i18n = this.muppetsClient.i18n;

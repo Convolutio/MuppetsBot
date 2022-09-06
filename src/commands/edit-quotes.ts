@@ -4,16 +4,13 @@ import { AsyncBuiltCommandMethods } from "../models/command.type";
 export const command:AsyncBuiltCommandMethods = {
     async buildData() {
         const i18n_b = this.muppetsClient.i18n_build;
-        const options = (await this.muppetsClient.characterService.getCharactersNames()).map(
-            name => ({name:name, value:name})
-        );
         return i18n_b(new SlashCommandBuilder(), "quotes", "quotes_description")
         .addSubcommand(subcommand =>
             i18n_b(subcommand, "add", "quotes$add_description")
                 .addStringOption(option =>
                     i18n_b(option, "character", "quotes$add$character_description")
                         .setRequired(true)
-                        .addChoices(...options)
+                        .setAutocomplete(true)
                     )
                 .addStringOption(option =>
                     i18n_b(option, "content", "quotes$add$content_description")
@@ -25,7 +22,7 @@ export const command:AsyncBuiltCommandMethods = {
                 .addStringOption(option =>
                     i18n_b(option, "character", "quotes$edit$character_description")
                         .setRequired(true)
-                        .addChoices(...options)
+                        .setAutocomplete(true)
                     )
                 .addStringOption(option =>
                     i18n_b(option, "content", "quotes$edit$content_description")
@@ -37,10 +34,13 @@ export const command:AsyncBuiltCommandMethods = {
                 .addStringOption(option =>
                     i18n_b(option, "character", "quotes$remove$character_description")
                         .setRequired(true)
-                        .addChoices(...options)
+                        .setAutocomplete(true)
                     )
             )
         
+    },
+    async autocomplete(interaction) {
+        this.muppetsClient.characterAutocomplete(interaction)
     },
     async execute(interaction:ChatInputCommandInteraction) {
         await interaction.deferReply();

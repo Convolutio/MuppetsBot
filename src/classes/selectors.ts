@@ -1,5 +1,5 @@
 import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
-import { ChatInputCommandInteraction, ComponentType, SelectMenuInteraction } from "discord.js";
+import { AutocompleteInteraction, ChatInputCommandInteraction, ComponentType, SelectMenuInteraction } from "discord.js";
 import { MuppetsClient } from "../muppets-client";
 
 function selector(customId:string, placeholder:string, ...options:{label:string, value:string}[]) {
@@ -46,6 +46,14 @@ const to_export = {
                     callback(inter);
                 });
         }
+    },
+    async characterAutocomplete(this:MuppetsClient, interaction:AutocompleteInteraction):Promise<void> {
+        const options = (await this.characterService.getCharactersNames()).map(
+            name => ({name:name, value:name})
+        );
+        const characterFocusedValue = interaction.options.getFocused();
+        const filtered = options.filter(choice => choice.name.toLowerCase().includes(characterFocusedValue.toLowerCase()));
+        await interaction.respond(filtered);
     }
 }
 export = to_export;

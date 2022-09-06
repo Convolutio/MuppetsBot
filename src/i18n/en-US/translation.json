@@ -41,9 +41,10 @@
         "characterEdited_log":"The **{{charName}}** character has been successfully edited.",
         "characterDeleted_log":"**{{charName}}** has gone to another world :church:.",
         "invalidAvatar_error":"The avatar hasn't been able to be handled. Please try again with valid options.",
-        "quoteAdded_log":"The new quote has been successfully created.",
+        "characterNotFound_error":":confused: We haven't found **{{charName}}**. To make me work, please input a name among those I suggest or create a new character :grin:!",
+        "quoteAdded_log":"The new quote has been successfully created:",
         "quoteRemoved_log":":+1: The selected quote of **{{charName}}** has been successfully deleted.",
-        "quoteEdited_log":":+1: The selected quote of **{{charName}}** has been successfully edited.",
+        "quoteEdited_log":":+1: The selected quote of **{{charName}}** has been successfully edited:",
         "selectorPlaceholder":"Please select the pre-saved line.",
         "selectorMessage":"Select the quote you want."
 }

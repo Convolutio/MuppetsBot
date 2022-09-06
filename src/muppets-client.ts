@@ -1,13 +1,14 @@
 import { ChatInputCommandInteraction, Collection, Interaction, REST, RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord.js"
 import { CharacterService } from "./classes/characterService"
 import { AsyncBuiltCommand, AsyncBuiltCommandMethods } from "./models/command.type";
-import { AddQuoteSelector } from "./classes/selectors";
+import { AddQuoteSelector, characterAutocomplete } from "./classes/selectors";
 import path from 'node:path';
 import fs from 'node:fs';
 import { token, clientId, guildId } from "../config.json";
 import {TFunction} from 'i18next';
 import { i18n_build, i18n } from "./i18n/i18n";
 import { DISCORD_LANGUAGE } from "./models/translation.type";
+import { setTimeout } from "node:timers/promises";
 export class MuppetsClient {
     public characterService = new CharacterService(this);
     public i18n!:TFunction;
@@ -19,12 +20,19 @@ export class MuppetsClient {
         this.i18n = i18n(language);
     }
 
-    private handle_error(interaction:ChatInputCommandInteraction, error:unknown) {
-        const rep = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
-        if (interaction.deferred) {
-            interaction.editReply(rep)   
+    private async handle_error(interaction:ChatInputCommandInteraction, error:any) {
+        let rep:string = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
+        if (typeof error === "object" && error.name && error.name === "characterNotFoundError") {
+            rep = error.message;
+        }
+        if (interaction.replied||interaction.deferred) {
+            const msg = await interaction.editReply(rep)
+            if (!interaction.ephemeral) {
+                await setTimeout(5500);
+                await msg.delete();
+            }   
         } else {
-            interaction.reply(rep)
+            await interaction.reply({content:rep, ephemeral:true})
         }
     }
 
@@ -81,16 +89,15 @@ export class MuppetsClient {
         this.commands = commands;
     }
 
-    treat(interaction:Interaction) {
+    async treat(interaction:Interaction) {
         if (!(interaction.isChatInputCommand()||interaction.isAutocomplete())) return;
 		const selectedCommand = this.commands.get(interaction.commandName);
         if (!selectedCommand) return;
 		if (interaction.isAutocomplete() && selectedCommand.autocomplete) {
 			selectedCommand.autocomplete(interaction);
-			return;
 		} else if (interaction.isChatInputCommand()) {
             try {
-                selectedCommand.execute(interaction);
+                await selectedCommand.execute(interaction);
             } catch(error) {
                 this.handle_error(interaction, error);
             }
@@ -103,5 +110,6 @@ export class MuppetsClient {
     }
 
     public AddQuoteSelector = AddQuoteSelector;
+    public characterAutocomplete = characterAutocomplete;
     public i18n_build = i18n_build;
 }
