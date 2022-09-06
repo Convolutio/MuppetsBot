@@ -41,9 +41,9 @@ const to_export = {
                 components:rows,
             });
             msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
-                .on('collect', async inter => {
+                .on('collect', inter => {
                     if (inter.customId!==customId) return ;
-                    await callback(inter);
+                    callback(inter);
                 });
         }
     }

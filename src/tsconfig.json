@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS", // required
+    "target": "ESNext", // required
+    "noImplicitAny": true,
+    "strict": true,
+    "rootDir": ".",
+    "outDir": "../build/",
+    "emitDecoratorMetadata": true, // required
+    "experimentalDecorators": true, // required
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "Node", // required
+    "esModuleInterop": true, // required
+    "resolveJsonModule": true,
+    "noImplicitThis": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.json",
+  ],
+  "references": [
+    { "path": "../" }
+  ]
+}

@@ -30,13 +30,21 @@ You must create in the repository's root directory a `config.json` file followin
 }
 ```
 
-You also must create an sqlite `database.db` file, just by once executing the `utils/init_db.ts` file.
+You also must create an sqlite `database.db` file, just by once executing the `utils/init_db.ts` (or `utils/init_db.js`) file.
 
 ```bash
-ts-node utils/init_db.ts
+cd ./src/utils
+ts-node init_db.ts
+cd ../..
 ```
 
-**⚠In javascript :** if you want to compil the typescript project, you must place the database in the built folder. If the database isn't initiated yet, you therefore can run the `utils/init_db.js` script to do that.
+OR
+
+```bash
+cd ./build/utils
+node init_db.js
+cd ../..
+```
 
 ## Run the BOT
 
@@ -58,27 +66,32 @@ If you're developing your own typescript or javascript Discord Bot and want to a
 > BotProject/
 >    main.ts
 >    Muppets Bot/
->       muppets-client.ts
+>       src/
+>          muppets-client.ts
+>          ...
 >       ...
 >    ...
 > ```
 >
-> Then, you should once get the commands with this code and make them run like this, thanks to the `getCommandsCollection()` asynchronous method the `MuppetsClient` class provides :
+> *Some compilation issues may occur in cause of `tsconfig` params. I haven't try to check that.*
+>
+> Then, you must init the commands with this code and make them run like this, thanks to the `initCommandsCollection()` asynchronous method the `MuppetsClient` class provides :
 >
 > ```ts
 > //For instance, in the main.ts file
-> import { MuppetsClient } from './Muppets Bot/muppets-client';
+> import { MuppetsClient } from './Muppets Bot/src/muppets-client';
 >
 > async () => {
->    const muppetsClientCommands = await (new MuppetsClient()).getCommandsCollection();
+>    const muppetsClient = new MuppetsClient();
+>    await muppetsClient.initCommandsCollection();
 >    //You can here import your own commands
 >    client.on('interactionCreate', async (i:Interaction) => {
->       const selectedMuppetCommand = muppetsClientCommands.get(i.commandName);
->       await selectedMuppetCommand?.execute(i);
+>       muppetsClient.treat(i);
 >       //Here you can execute your own commands in addition to the muppetsClient's ones
 >    });
 > }
 > ```
+> The process in javascript is approximately the same.
 
 _Please be aware the commands are built and deployed (and even deployed again, sometimes) asynchronously, in addition to be executed in this way. Moreover, the collection contains all commands with an `AsyncBuiltCommand` type I've developed to cleanly use the `MuppetsClient` internal properties. This is why the internal code is quite far from the conventional Discord Bot js and ts programs and you should follow the instructions I've described above. The `MuppetClient` in the `muppet-client.ts` main file has therefore been designed to be easily used in any other Discord projects, like as an extension._
 

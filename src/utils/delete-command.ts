@@ -2,7 +2,7 @@
 
 import { REST } from '@discordjs/rest'
 import { Routes } from 'discord.js'
-import { token, clientId, guildId,  commandToDelete_id } from '../config.json'
+import { token, clientId, guildId,  commandToDelete_id } from '../../config.json'
 
 const rest = new REST({version:'10'}).setToken(token);
 

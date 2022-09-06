@@ -1,8 +1,8 @@
-import { QueryTypes, Sequelize } from "sequelize";
+import { Sequelize } from "sequelize";
 import path from "node:path";
 
 //Run this command just once to initialized a `database.db` file in the repository's directory
-const db_path = path.join(__dirname, "..", "database.db")
+const db_path = path.join(__dirname, "../..", "database.db")
 const db = new Sequelize({
     dialect:'sqlite',
     storage:db_path,
