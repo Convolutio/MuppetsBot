@@ -21,7 +21,11 @@ export class MuppetsClient {
 
     private handle_error(interaction:ChatInputCommandInteraction, error:unknown) {
         const rep = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
-        try {interaction.reply(rep)} catch {interaction.editReply(rep)}
+        if (interaction.deferred) {
+            interaction.editReply(rep)   
+        } else {
+            interaction.reply(rep)
+        }
     }
 
     private getCommandsObjs():AsyncBuiltCommand[] {
