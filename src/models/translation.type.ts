@@ -47,6 +47,7 @@ const options = [
     "characterDeleted_log",
     "invalidAvatar_error",
     "characterNotFound_error",
+    "characterAlreadyExist_error",
     "quoteAdded_log",
     "quoteRemoved_log",
     "quoteEdited_log",

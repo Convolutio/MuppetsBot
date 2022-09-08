@@ -129,13 +129,26 @@ export class CharacterService {
     };
 
     async addCharacter(character:Character):Promise<void> {
-        const data = [
-            character.name,
-            character.webhook_data.id,
-            character.webhook_data.token
-        ]
-        await this.db.query(`INSERT INTO characters VALUES(?, ?, ?)`, {replacements:data, type:QueryTypes.INSERT});
-        await this.muppetClient.deployCommands();
+        let doesCharacterAlreadyExist:boolean = true; 
+        try {
+            await this.checkCorrectCharName(character.name);
+        } catch(err:any) {
+            if (err.name && err.name==="characterNotFoundError")
+            doesCharacterAlreadyExist = false;
+        } finally {
+            if (doesCharacterAlreadyExist) {
+                throw {
+                    name:"characterNotFoundError",
+                    message:this.muppetClient.i18n('characterAlreadyExist_error', {charName:character.name})
+                }
+            }
+            const data = [
+                character.name,
+                character.webhook_data.id,
+                character.webhook_data.token
+            ]
+            await this.db.query(`INSERT INTO characters VALUES(?, ?, ?)`, {replacements:data, type:QueryTypes.INSERT});
+        }
     };
     async deleteCharacter(characterName:string) {
         await this.checkCorrectCharName(characterName);

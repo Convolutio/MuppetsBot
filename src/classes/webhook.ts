@@ -1,6 +1,7 @@
-import { BufferResolvable, Client, TextBasedChannel, Webhook } from 'discord.js';
+import { BufferResolvable, Client, NewsChannel, TextBasedChannel, TextChannel, Webhook } from 'discord.js';
 import { Character } from '../models/character.type';
 import { CharacterService } from './characterService';
+import {clientId} from "../../config.json"
 
 export class MyWebhook {
     //Please use init asynchronous method to init the webhook;
@@ -40,6 +41,32 @@ export class MyWebhook {
     private async changeChannel(channel:TextBasedChannel):Promise<void> {
         if (channel.isDMBased() || channel.isThread() || channel.isVoiceBased()) 
             throw "Cannot use webhook in this kind of channel";
+        const channelWebhooks = (await channel.fetchWebhooks()).filter(hook => {
+            return (hook.applicationId===clientId && hook.id != this.webhook.id)
+        })
+        if (channelWebhooks.size===9) {
+            const randomWebhook = channelWebhooks.random();
+            if (randomWebhook) {
+                let randomChannel:TextChannel|NewsChannel|undefined=undefined;
+                let i:number = 0;
+                const guildChannels = channel.guild.channels.cache.map(c => c);
+                while (!randomChannel && i<guildChannels.length) {
+                    const thechannel = guildChannels[i];
+                    if (
+                        thechannel.isTextBased() &&
+                        !(thechannel.isDMBased() || thechannel.isThread() || thechannel.isVoiceBased())
+                        && thechannel.id !== channel.id
+                    ) {
+                        if ((await thechannel.fetchWebhooks()).size < 9) {
+                            randomChannel = thechannel;
+                        }
+                    }
+                    i++;
+                }
+                if (!randomChannel) throw "Random text or news channel not found";
+                await randomWebhook.edit({channel:randomChannel});
+            }
+        }
         await this.webhook.edit({channel:channel});
     }
     private async editWebhook(character:{name?:string, avatar?:BufferResolvable}) {

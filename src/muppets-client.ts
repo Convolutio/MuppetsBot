@@ -53,7 +53,7 @@ export class MuppetsClient {
         return commands;
     }
 
-    async deployCommands() {
+    private async deployCommands() {
         const commandsJSONData:RESTPostAPIApplicationCommandsJSONBody[] = [];
         this.commands_ids = []; 
         try {
