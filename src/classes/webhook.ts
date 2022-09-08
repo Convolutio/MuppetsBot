@@ -24,6 +24,7 @@ export class MyWebhook {
         //Create a new Webhook for the character to create, and add this new character to the database
         if (channel.isDMBased()||channel.isThread()||channel.isVoiceBased())
             throw "Cannot create a webhook outside a text/news channel. Please run this command in another channel.";
+        await this.checkWebhookToMove(channel);
         this.webhook = await channel.createWebhook({...character, reason:"Adding of a new character in the guild."});
         if (this.webhook.token) {
             this.currentCharacter = {...character, webhook_data:{id:this.webhook.id, token:this.webhook.token}}
@@ -38,9 +39,8 @@ export class MyWebhook {
         await this.characterService.deleteCharacter(this.webhook.name);
         await this.webhook.delete();
     }
-    private async changeChannel(channel:TextBasedChannel):Promise<void> {
-        if (channel.isDMBased() || channel.isThread() || channel.isVoiceBased()) 
-            throw "Cannot use webhook in this kind of channel";
+
+    private async checkWebhookToMove(channel:TextChannel|NewsChannel) {
         const channelWebhooks = (await channel.fetchWebhooks()).filter(hook => {
             return (hook.applicationId===clientId && hook.id != this.webhook.id)
         })
@@ -67,6 +67,12 @@ export class MyWebhook {
                 await randomWebhook.edit({channel:randomChannel});
             }
         }
+    }
+
+    private async changeChannel(channel:TextBasedChannel):Promise<void> {
+        if (channel.isDMBased() || channel.isThread() || channel.isVoiceBased()) 
+            throw "Cannot use webhook in this kind of channel";
+        await this.checkWebhookToMove(channel);
         await this.webhook.edit({channel:channel});
     }
     private async editWebhook(character:{name?:string, avatar?:BufferResolvable}) {
