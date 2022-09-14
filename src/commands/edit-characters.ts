@@ -1,4 +1,4 @@
-import { Attachment, BufferResolvable, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { Attachment, BufferResolvable, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
 import { AsyncBuiltCommandMethods } from "../models/command.type";
 
@@ -18,6 +18,14 @@ export const command:AsyncBuiltCommandMethods = {
             new SlashCommandBuilder(),
             "characters",
             "characters_description")
+            .addSubcommand(subcommand =>
+                i18n_b(subcommand, "display", "characters$display_description")
+                .addStringOption(option =>
+                    i18n_b(option, "character", 'characters$display$character_description')
+                        .setRequired(true)
+                        .setAutocomplete(true)
+                    )
+            )
             .addSubcommand(subcommand =>
                 i18n_b(subcommand, "add", "characters$add_description") 
                 .addStringOption(option =>
@@ -62,12 +70,22 @@ export const command:AsyncBuiltCommandMethods = {
     },
     async execute (interaction:ChatInputCommandInteraction){
         const i18n = this.muppetsClient.i18n;
-        await interaction.deferReply();
         const subcommand = interaction.options.getSubcommand(true);
+        await interaction.deferReply({ephemeral:subcommand==="display"});
         const channel = interaction.channel;
         if (!channel) throw "Channel information not found. Please try again.";
         const webhook = new MyWebhook(this.muppetsClient.characterService);
-        if (subcommand==="add") {
+        if (subcommand==="display") {
+            const charName = interaction.options.getString("character", true);
+            const character = await this.muppetsClient.characterService.getCharacterWithName(charName);
+            const avatar = (await interaction.client.fetchWebhook(character.webhook_data.id, character.webhook_data.token))
+                .avatarURL();
+            const embed = new EmbedBuilder()
+                .setTitle(charName)
+                .setThumbnail(avatar)
+                .setColor("#00c8ff")
+            await interaction.editReply({embeds:[embed]});
+        } else if (subcommand==="add") {
             const name = interaction.options.getString("name", true);
             const avatar_url = interaction.options.getString("avatar_url");
             const avatarAttachment = interaction.options.getAttachment("avatar_file");

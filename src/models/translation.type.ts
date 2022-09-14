@@ -6,6 +6,7 @@ const options = [
     "add",
     "remove",
     "edit",
+    "display",
     //commands args names
     "character",
     "content",
@@ -16,6 +17,7 @@ const options = [
     "play_description",
     "characters_description",
     "quotes_description",
+    "characters$display_description",
     "characters$add_description",
     "characters$remove_description",
     "characters$edit_description",
@@ -25,6 +27,7 @@ const options = [
     //args description
     "play$character_description",
     "play$content_description",
+    "characters$display$character_description",
     "characters$add$name_description",
     "characters$add$avatarURL_description",
     "characters$add$avatarFile_description",
