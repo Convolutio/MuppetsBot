@@ -73,7 +73,7 @@ export class CharacterService {
         const row = await this.db.query<db_Character>(`SELECT * FROM characters WHERE characters.name="${name}"`,
             {type:QueryTypes.SELECT, plain:true});
         if (!row) throw {
-            name:"characterNotFoundError",
+            name:"muppetsClientError",
             message:this.muppetClient.i18n("characterNotFound_error", {charName:name})
         }
         return row
@@ -133,12 +133,12 @@ export class CharacterService {
         try {
             await this.checkCorrectCharName(character.name);
         } catch(err:any) {
-            if (err.name && err.name==="characterNotFoundError")
+            if (err.name && err.name==="muppetsClientError")
             doesCharacterAlreadyExist = false;
         } finally {
             if (doesCharacterAlreadyExist) {
                 throw {
-                    name:"characterNotFoundError",
+                    name:"muppetsClientError",
                     message:this.muppetClient.i18n('characterAlreadyExist_error', {charName:character.name})
                 }
             }

@@ -54,6 +54,7 @@ const options = [
     "quoteAdded_log",
     "quoteRemoved_log",
     "quoteEdited_log",
+    "usageLimit_error",
     //Selector interface
     "selectorPlaceholder",
     "selectorMessage",
