@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Collection, Interaction, REST, RESTPostAPIApplicationCommandsJSONBody, Routes, time } from "discord.js"
+import { ChatInputCommandInteraction, Collection, Interaction, REST, RESTPostAPIApplicationCommandsJSONBody, Routes, SelectMenuInteraction, time } from "discord.js"
 import { CharacterService } from "./classes/characterService"
 import { AsyncBuiltCommand, AsyncBuiltCommandMethods } from "./models/command.type";
 import { AddQuoteSelector, characterAutocomplete } from "./classes/selectors";
@@ -12,13 +12,13 @@ import { setTimeout } from "node:timers/promises";
 export class MuppetsClient {
     private MAX_USAGE = 5;
     private TIME_BEFORE_FREE_USAGE = 12*3600*1000;
-    private LIMITED_USAGE_COMMANDS_NAME = ["play"];
     public characterService = new CharacterService(this);
     public i18n!:TFunction;
     private commands_ids:string[]=[];
     private rest=(new REST({version:'10'})).setToken(token);
     private commands!:Collection<string, AsyncBuiltCommand>;
     private usages:{[userId:string]:{usages:number, reinitDate:Date}}={};
+    private happyHour=false;
 
     constructor(language?:DISCORD_LANGUAGE) {
         this.i18n = i18n(language);
@@ -93,9 +93,9 @@ export class MuppetsClient {
         this.commands = commands;
     }
 
-    private checkMemberUsages(interaction:ChatInputCommandInteraction):void {
+    checkMemberUsages(interaction:ChatInputCommandInteraction):void {
         const userId = interaction.user.id;
-        if (this.LIMITED_USAGE_COMMANDS_NAME.includes(interaction.commandName)
+        if (!this.happyHour
             &&this.usages[userId]
             &&this.usages[userId].usages===this.MAX_USAGE)
             throw {
@@ -103,20 +103,35 @@ export class MuppetsClient {
                 message:this.i18n("usageLimit_error").replace('{{date}}', time(this.usages[userId].reinitDate))
             };
     }
+
+    setHappyHour():boolean {
+        this.happyHour = !this.happyHour;
+        return this.happyHour;
+    }
+
+    private async displayUsages(userId:string, interaction:ChatInputCommandInteraction):Promise<void> {
+        const usages = this.usages[userId].usages;
+        const date = time(this.usages[userId].reinitDate)
+        const additionalMessage = '\n\n' + ((this.happyHour)?`:partying_face: Happy Hour! :confetti_ball:`:`(\`${usages}/${this.MAX_USAGE}\` ; ${date})`);
+        await interaction.editReply({content:(await interaction.fetchReply()).content+additionalMessage})
+    }
+
+    private async waitToFreeUsage(userId:string):Promise<void> {
+        await setTimeout(this.TIME_BEFORE_FREE_USAGE);
+        this.usages[userId].usages=0;
+    }
     
-    private async addMemberUsage(interaction:ChatInputCommandInteraction):Promise<void> {
-        if (!this.LIMITED_USAGE_COMMANDS_NAME.includes(interaction.commandName)) return;
+    async addMemberUsage(interaction:ChatInputCommandInteraction):Promise<void> {
         const userId = interaction.user.id;
-        if (!this.usages[userId]||this.usages[userId].usages===0) {
-            this.usages[userId] = {usages:1, reinitDate: new Date(Date.now()+this.TIME_BEFORE_FREE_USAGE)};
-            await setTimeout(this.TIME_BEFORE_FREE_USAGE);
-            this.usages[userId].usages=0;
-        } else if (this.usages[userId].usages<3){
+        if (this.happyHour) {
+
+        } else if (!this.usages[userId]||this.usages[userId].usages===0) {
+            this.usages[userId] = {usages:1, reinitDate: new Date(Date.now()+this.TIME_BEFORE_FREE_USAGE+60*1000)};
+            this.waitToFreeUsage(userId);
+        } else if (this.usages[userId].usages<this.MAX_USAGE){
             this.usages[userId].usages++;
-            const usages = this.usages[userId].usages;
-            const date = time(this.usages[userId].reinitDate)
-            await interaction.editReply({content:(await interaction.fetchReply()).content+`\n\n(\`${usages}/${this.MAX_USAGE}\` ; ${date})`})
         }
+        this.displayUsages(userId, interaction);
     }
 
     async treat(interaction:Interaction) {
@@ -127,9 +142,7 @@ export class MuppetsClient {
 			selectedCommand.autocomplete(interaction);
 		} else if (interaction.isChatInputCommand()) {
             try {
-                this.checkMemberUsages(interaction);
                 await selectedCommand.execute(interaction);
-                this.addMemberUsage(interaction);
             } catch(error) {
                 this.handle_error(interaction, error);
             }

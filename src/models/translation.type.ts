@@ -7,6 +7,7 @@ const options = [
     "remove",
     "edit",
     "display",
+    "happy-hour",
     //commands args names
     "character",
     "content",
@@ -14,6 +15,7 @@ const options = [
     "avatar_url",
     "avatar_file",
     //commands description
+    "happy-hour_description",
     "play_description",
     "characters_description",
     "quotes_description",

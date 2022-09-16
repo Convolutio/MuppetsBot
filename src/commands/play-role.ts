@@ -4,7 +4,6 @@ import { AsyncBuiltCommandMethods } from "../models/command.type";
 
 export const command:AsyncBuiltCommandMethods = {
     async buildData() {
-        //.setName(this.muppetsClient.i18n("play"))
         return this.muppetsClient.i18n_build(
             new SlashCommandBuilder(),
             "play",
@@ -24,6 +23,7 @@ export const command:AsyncBuiltCommandMethods = {
     },
     async execute(interaction) {
         //The command has been submitted.
+        this.muppetsClient.checkMemberUsages(interaction);
         await interaction.reply({content:this.muppetsClient.i18n("webhookAwaited_log"),ephemeral:true});
         const charName = interaction.options.getString("character", true);
         const webhook = new MyWebhook(this.muppetsClient.characterService);
@@ -34,6 +34,7 @@ export const command:AsyncBuiltCommandMethods = {
         if (textContent) {
             await webhook.speak(textContent, channel);
             await interaction.editReply({content:this.muppetsClient.i18n("done"), components:[]});
+            this.muppetsClient.addMemberUsage(interaction)
         } else {
             await this.muppetsClient.AddQuoteSelector(
                 charName, true, 'selectQuoteToTell', interaction,
@@ -41,6 +42,7 @@ export const command:AsyncBuiltCommandMethods = {
                     await i.deferUpdate();
                     await webhook.speak(i.values[0], channel);
                     await i.editReply({content:this.muppetsClient.i18n("done"), components:[]});
+                    this.muppetsClient.addMemberUsage(interaction);
                 }
             );
         }
