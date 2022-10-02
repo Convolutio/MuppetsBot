@@ -1,5 +1,5 @@
-import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
-import { AutocompleteInteraction, ChatInputCommandInteraction, ComponentType, SelectMenuInteraction } from "discord.js";
+import { AutocompleteInteraction, ChatInputCommandInteraction, ComponentType,
+    SelectMenuInteraction, SelectMenuBuilder, ActionRowBuilder } from "discord.js";
 import { MuppetsClient } from "../muppets-client";
 
 function selector(customId:string, placeholder:string, ...options:{label:string, value:string}[]) {

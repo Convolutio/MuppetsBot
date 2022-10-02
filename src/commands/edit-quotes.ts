@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { AsyncBuiltCommandMethods } from "../models/command.type";
+import { CommandMethodsType } from "../models/command.type";
 
-export const command:AsyncBuiltCommandMethods = {
-    async buildData() {
+export const command:CommandMethodsType = {
+    buildData() {
         const i18n_b = this.muppetsClient.i18n_build;
         return i18n_b(new SlashCommandBuilder(), "quotes", "quotes_description")
         .addSubcommand(subcommand =>
@@ -42,7 +42,8 @@ export const command:AsyncBuiltCommandMethods = {
     async autocomplete(interaction) {
         this.muppetsClient.characterAutocomplete(interaction)
     },
-    async execute(interaction:ChatInputCommandInteraction) {
+    async execute(interaction) {
+        if (!interaction.isChatInputCommand()) return;
         await interaction.deferReply();
         const i18n = this.muppetsClient.i18n;
         const charService = this.muppetsClient.characterService;

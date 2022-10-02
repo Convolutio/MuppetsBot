@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, Collection, Interaction, REST, RESTPostAPIApplicationCommandsJSONBody, Routes, SelectMenuInteraction, time } from "discord.js"
+import { ChatInputCommandInteraction, Collection, ContextMenuCommandInteraction, Interaction, REST, RESTPostAPIApplicationCommandsJSONBody, Routes, time } from "discord.js"
 import { CharacterService } from "./classes/characterService"
-import { AsyncBuiltCommand, AsyncBuiltCommandMethods } from "./models/command.type";
+import { CommandType, CommandMethodsType } from "./models/command.type";
 import { AddQuoteSelector, characterAutocomplete } from "./classes/selectors";
 import path from 'node:path';
 import fs from 'node:fs';
@@ -16,7 +16,7 @@ export class MuppetsClient {
     public i18n!:TFunction;
     private commands_ids:string[]=[];
     private rest=(new REST({version:'10'})).setToken(token);
-    private commands!:Collection<string, AsyncBuiltCommand>;
+    private commands!:Collection<string, CommandType>;
     private usages:{[userId:string]:{usages:number, reinitDate:Date}}={};
     private happyHour=false;
 
@@ -24,7 +24,7 @@ export class MuppetsClient {
         this.i18n = i18n(language);
     }
 
-    private async handle_error(interaction:ChatInputCommandInteraction, error:any) {
+    private async handle_error(interaction:ChatInputCommandInteraction|ContextMenuCommandInteraction, error:any) {
         let rep:string = `An error has occured when executing this command:\n\`\`\`${error}\`\`\``;
         if (typeof error === "object" && error.name && error.name === "muppetsClientError") {
             rep = error.message;
@@ -40,15 +40,15 @@ export class MuppetsClient {
         }
     }
 
-    private getCommandsObjs():AsyncBuiltCommand[] {
-        const commands:AsyncBuiltCommand[] = [];
+    private getCommandsObjs():CommandType[] {
+        const commands:CommandType[] = [];
         const commandsPath = path.join(__dirname, 'commands');
         const commandsFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".ts")||file.endsWith(".js"));
         for (const file of commandsFiles) {
             const filePath = path.join(commandsPath, file);
             const required = require(filePath);
-            const commandMethods :AsyncBuiltCommandMethods = required.command;
-            const command:AsyncBuiltCommand = {
+            const commandMethods :CommandMethodsType = required.command;
+            const command:CommandType = {
                 muppetsClient:this,
                 ...commandMethods
             };
@@ -65,7 +65,7 @@ export class MuppetsClient {
             console.log(`     Requiring commands' data...`);
             const commands = this.getCommandsObjs();
             for (let command of commands) {
-                const data = await (command.buildData)();
+                const data = command.buildData();
                 commandsJSONData.push(data.toJSON());
             }
             console.log(`     Started refreshing application (/) commands in ${guildId} guild.`);
@@ -84,7 +84,7 @@ export class MuppetsClient {
     }
 
     async initCommandsCollection():Promise<void> {
-        const commands = new Collection<string, AsyncBuiltCommand>();
+        const commands = new Collection<string, CommandType>();
         await this.deployCommands();
         await Promise.all(this.getCommandsObjs().map(async command => {
             const name = (await command.buildData()).name;
@@ -135,12 +135,12 @@ export class MuppetsClient {
     }
 
     async treat(interaction:Interaction) {
-        if (!(interaction.isChatInputCommand()||interaction.isAutocomplete())) return;
+        if (!interaction.isChatInputCommand()&&!interaction.isAutocomplete()&&!interaction.isMessageContextMenuCommand()) return;
 		const selectedCommand = this.commands.get(interaction.commandName);
         if (!selectedCommand) return;
 		if (interaction.isAutocomplete() && selectedCommand.autocomplete) {
 			selectedCommand.autocomplete(interaction);
-		} else if (interaction.isChatInputCommand()) {
+		} else if (interaction.isChatInputCommand()||interaction.isMessageContextMenuCommand()) {
             try {
                 await selectedCommand.execute(interaction);
             } catch(error) {

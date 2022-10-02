@@ -1,9 +1,9 @@
-import { SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
-import { AsyncBuiltCommandMethods } from "../models/command.type";
+import { CommandMethodsType } from "../models/command.type";
 
-export const command:AsyncBuiltCommandMethods = {
-    async buildData() {
+export const command:CommandMethodsType = {
+    buildData() {
         return this.muppetsClient.i18n_build(
             new SlashCommandBuilder(),
             "play",
@@ -13,15 +13,13 @@ export const command:AsyncBuiltCommandMethods = {
                 .setRequired(true)
                 .setAutocomplete(true)
             )
-        .addStringOption(option =>
-            this.muppetsClient.i18n_build(option, "content", "play$content_description")
-                .setRequired(false)
-            )
-    },
+        }
+    ,
     async autocomplete(interaction) {
         this.muppetsClient.characterAutocomplete(interaction)
     },
     async execute(interaction) {
+        if (!interaction.isChatInputCommand()) return;
         //The command has been submitted.
         this.muppetsClient.checkMemberUsages(interaction);
         await interaction.reply({content:this.muppetsClient.i18n("webhookAwaited_log"),ephemeral:true});
@@ -36,7 +34,7 @@ export const command:AsyncBuiltCommandMethods = {
             await interaction.editReply({content:this.muppetsClient.i18n("done"), components:[]});
             this.muppetsClient.addMemberUsage(interaction)
         } else {
-            await this.muppetsClient.AddQuoteSelector(
+            this.muppetsClient.AddQuoteSelector(
                 charName, true, 'selectQuoteToTell', interaction,
                 async i => {
                     await i.deferUpdate();
@@ -45,6 +43,7 @@ export const command:AsyncBuiltCommandMethods = {
                     this.muppetsClient.addMemberUsage(interaction);
                 }
             );
+            
         }
     }
 }
