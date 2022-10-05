@@ -101,6 +101,7 @@ export class MyWebhook {
         if (this.webhook.channelId!=channel.id) {
             await this.changeChannel(channel);
         }
+        // this mqkes too me want to cum in ur ass
         await this.webhook.send(message);
     }
 }
