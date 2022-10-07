@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, ComponentType, SlashCommandBuilder } from "discord.js";
 import { CommandMethodsType } from "../models/command.type";
 
 export const command:CommandMethodsType = {
@@ -55,31 +55,41 @@ export const command:CommandMethodsType = {
             await interaction.editReply({content:i18n("quoteAdded_log")});
         } else if (subcommand==="edit") {
             const new_quote = interaction.options.getString("content", true);
-            await this.muppetsClient.AddQuoteSelector(
-                charName, false, 'selectQuoteToEdit',interaction,
-                async i => {
-                    await i.deferUpdate();
-                    const selectedQuoteId = +i.values[0];
-                    await charService.editQuote(selectedQuoteId, new_quote);
-                    await i.editReply({
-                        content:i18n("quoteEdited_log", {charName:charName}),
-                        components:[]
-                    });
-                }
-            );
+            const reply = await this.muppetsClient.AddQuoteSelector(
+                charName, false, 'selectQuoteToEdit');
+            const msg = await interaction.editReply(reply);
+            if (reply.components) {
+                //There's at least one quote to be selected
+                msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
+                    .on('collect', async i => {
+                        if (i.customId!=='selectQuoteToEdit') return;
+                        await i.deferUpdate();
+                        const selectedQuoteId = +i.values[0];
+                        await charService.editQuote(selectedQuoteId, new_quote);
+                        await i.editReply({
+                            content:i18n("quoteEdited_log", {charName:charName}),
+                            components:[]
+                        });
+                    }
+                )
+            }
         } else if (subcommand==="remove") {
-            await this.muppetsClient.AddQuoteSelector(
-                charName, false, 'selectQuoteToDelete',interaction,
-                async i => {
-                    await i.deferUpdate();
-                    const selectedQuoteId = +i.values[0];
-                    await charService.deleteQuote(selectedQuoteId);
-                    await i.editReply({
-                        content:i18n("quoteRemoved_log", {charName:charName}),
-                        components:[]
-                    });
-                }
-            );
+            const reply = await this.muppetsClient.AddQuoteSelector(
+                charName, false, 'selectQuoteToDelete');
+            const msg = await interaction.editReply(reply);
+            if (reply.components) {
+                msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
+                    .on('collect', async i => {
+                        if (i.customId!=='selectQuoteToDelete') return;
+                        await i.deferUpdate();
+                        const selectedQuoteId = +i.values[0];
+                        await charService.deleteQuote(selectedQuoteId);
+                        await i.editReply({
+                            content:i18n("quoteRemoved_log", {charName:charName}),
+                            components:[]
+                        });
+                    })
+            }
         }
     }
 }

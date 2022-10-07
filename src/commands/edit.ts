@@ -15,37 +15,16 @@ export const command:CommandMethodsType = {
         const target = interaction.targetMessage;
         try {
             const whk = await interaction.client.fetchWebhook(target.author.id);
-            createContentForm(interaction,
+            await createContentForm(interaction,
                 `Edit ${target.author.username}'s message`,
-                async submission => {
-                    await whk.editMessage(target.id, submission.fields.getTextInputValue('newContentInput'));
+                async (submission, textInput) => {
+                    await whk.editMessage(target.id, textInput);
                     await submission.reply({content:"Message edited !", ephemeral:true});
                 },
-                target.content)
-            /*
-            const modal = new ModalBuilder()
-                .setTitle()
-                .setCustomId("newContentModal")
-                .addComponents(
-                new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
-                    new TextInputBuilder()
-                        .setCustomId("newContentInput")
-                        .setLabel("What is the new content of the message ?")
-                        .setStyle(TextInputStyle.Paragraph)
-                        .setRequired(true)
-                        .setValue(target.content)
-                )
-            );
-            await interaction.showModal(modal);
-            interaction.awaitModalSubmit({filter:(i)=>(i.customId==="newContentModal"), time:60_000})
-                    .then(async submission => {
-                        await whk.editMessage(target.id, submission.fields.getTextInputValue('newContentInput'));
-                        await submission.reply({content:"Message edited !", ephemeral:true});
-                    })
-                    .catch(err=>{return;})
-            */
+                target.content);
         } catch(err:any) {
-            await interaction.reply({content:"Nop", ephemeral:true});
+            console.error(err);
+            //await interaction.reply({content:"Nop", ephemeral:true});
         }
     }
 }
