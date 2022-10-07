@@ -1,9 +1,9 @@
-import { ActionRowBuilder, ChatInputCommandInteraction, ContextMenuCommandInteraction,
+import { ActionRowBuilder, ButtonInteraction, ContextMenuCommandInteraction,
     ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
 
 export async function createContentForm(
-    interaction:ChatInputCommandInteraction|ContextMenuCommandInteraction,
-    title:string, callback:(submission:ModalSubmitInteraction)=>Promise<void>, placeholder?:string) {
+    interaction:ButtonInteraction|ContextMenuCommandInteraction,
+    title:string, callback:(inter:ModalSubmitInteraction, textInput:string)=>Promise<void>, placeholder?:string) {
     /*Shows a modal to ask the custom content of a message or a new quote.
     Then executes the callback if the modal has been submitted.*/
     const modalId="newContentModal"+ Date.now().toString();
@@ -26,7 +26,8 @@ export async function createContentForm(
     );
     await interaction.showModal(modal);
     try {
-        const submission = await interaction.awaitModalSubmit({filter:(i)=>i.customId===modalId,time:120_000})
-        await callback(submission)
-    } catch(err) {}
+        const submission = await interaction.awaitModalSubmit({filter:(i)=>i.customId===modalId,time:120_000});
+        const text = submission.fields.getTextInputValue('newContentInput');
+        await callback(submission, text);
+    } catch(err) {console.error(err)}
 }

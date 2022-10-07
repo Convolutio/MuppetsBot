@@ -1,8 +1,9 @@
-import { BufferResolvable, Client, NewsChannel, TextBasedChannel, TextChannel, Webhook } from 'discord.js';
+import { APIInteractionDataResolvedGuildMember, APIRole, Attachment, AttachmentBuilder, BufferResolvable, Client, GuildMember, NewsChannel, Role, TextBasedChannel, TextChannel, User, Webhook } from 'discord.js';
 import { Character } from '../models/character.type';
 import { CharacterService } from './characterService';
 import {clientId} from "../../config.json"
 
+type Mentionable = NonNullable<GuildMember | User | APIInteractionDataResolvedGuildMember | Role | APIRole | null | undefined>;
 export class MyWebhook {
     //Please use init asynchronous method to init the webhook;
     private webhook!:Webhook;
@@ -95,13 +96,18 @@ export class MyWebhook {
             await this.characterService.editCharacterName(this.webhook.id, character.name);
         }
     }
-    async speak(message:string, channel:TextBasedChannel): Promise<void> {
+    async speak(message:string, channel:TextBasedChannel, mention?:Mentionable, attachment?:Attachment): Promise<void> {
         if (!this.isInitiated) throw "The MyWebhook instance hasn't been initiated.";
         //Makes the character linked to the webhook speak in the specified channel
         if (this.webhook.channelId!=channel.id) {
             await this.changeChannel(channel);
         }
-        // this mqkes too me want to cum in ur ass
-        await this.webhook.send(message);
+        let msg:string = message;
+        if (mention) msg += '\n'+mention.toString();
+        if (attachment) {
+            await this.webhook.send({content:msg, files:[attachment.url]});
+        } else {
+            await this.webhook.send(msg);
+        }
     }
 }

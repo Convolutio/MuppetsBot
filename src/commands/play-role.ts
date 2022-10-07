@@ -1,6 +1,7 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, ModalMessageModalSubmitInteraction, ModalSubmitInteraction, SelectMenuInteraction, SlashCommandBuilder } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
 import { CommandMethodsType } from "../models/command.type";
+import { createContentForm } from "../classes/contentForm";
 
 export const command:CommandMethodsType = {
     buildData() {
@@ -13,6 +14,13 @@ export const command:CommandMethodsType = {
                 .setRequired(true)
                 .setAutocomplete(true)
             )
+        .addMentionableOption(option =>
+            option.setName('mention')
+            .setDescription("Make the character mention somebody at the end of its message.")
+        )
+        .addAttachmentOption(option =>
+            option.setName('attachment')
+            .setDescription("Attach a file to the message you want the character to send."))
         }
     ,
     async autocomplete(interaction) {
@@ -22,28 +30,50 @@ export const command:CommandMethodsType = {
         if (!interaction.isChatInputCommand()) return;
         //The command has been submitted.
         this.muppetsClient.checkMemberUsages(interaction);
-        await interaction.reply({content:this.muppetsClient.i18n("webhookAwaited_log"),ephemeral:true});
+        await interaction.deferReply({ephemeral:true});
         const charName = interaction.options.getString("character", true);
         const webhook = new MyWebhook(this.muppetsClient.characterService);
         await webhook.init(interaction.client, charName);
         const channel = interaction.channel;
         if (!channel) throw "Channel information not found. Please try again."
-        const textContent = interaction.options.getString("content");
-        if (textContent) {
-            await webhook.speak(textContent, channel);
-            await interaction.editReply({content:this.muppetsClient.i18n("done"), components:[]});
-            this.muppetsClient.addMemberUsage(interaction)
+        const mention = interaction.options.getMentionable('mention')||undefined;
+        const attachment = interaction.options.getAttachment('attachment')||undefined;
+        const button = new ActionRowBuilder<ButtonBuilder>()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId("customButton")
+                .setLabel("Customize")
+                .setStyle(ButtonStyle.Primary)
+        );
+        const reply = await this.muppetsClient.AddQuoteSelector(
+            charName, true, 'selectQuoteToTell');
+        if (reply.components) {
+            reply.components.push(button)
         } else {
-            this.muppetsClient.AddQuoteSelector(
-                charName, true, 'selectQuoteToTell', interaction,
-                async i => {
-                    await i.deferUpdate();
-                    await webhook.speak(i.values[0], channel);
-                    await i.editReply({content:this.muppetsClient.i18n("done"), components:[]});
-                    this.muppetsClient.addMemberUsage(interaction);
-                }
-            );
-            
+            reply.components = [button]
         }
+        const msg = await interaction.editReply(reply);
+        const speak = async (i:SelectMenuInteraction|ModalMessageModalSubmitInteraction,
+            content:string) => {
+                await i.update({content:this.muppetsClient.i18n("webhookAwaited_log"), components:[]});
+                await webhook.speak(content, channel, mention, attachment);
+                await i.editReply({content:this.muppetsClient.i18n("done")});
+                this.muppetsClient.addMemberUsage(interaction)
+        };
+        msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
+            .on('collect', async inter => {
+                if (inter.customId!=="selectQuoteToTell") return ;
+                await speak(inter, inter.values[0]);
+            });
+        msg.createMessageComponentCollector({componentType:ComponentType.Button, time:15000})
+            .on('collect', async inter => {
+                if (inter.customId!=="customButton") return;
+                await createContentForm(inter, "Write a custom speech.",
+                    async (submission, textInput)=> {
+                        if (!submission.isFromMessage()) return;
+                        await speak(submission, textInput);
+                    }
+                )
+            })
     }
 }
