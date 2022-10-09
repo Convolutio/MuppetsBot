@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, ComponentType, SlashCommandBuilder } from "discord.js";
+import { ComponentType, SlashCommandBuilder } from "discord.js";
 import { CommandMethodsType } from "../models/command.type";
 
 export const command:CommandMethodsType = {
@@ -12,10 +12,11 @@ export const command:CommandMethodsType = {
                         .setRequired(true)
                         .setAutocomplete(true)
                     )
-                .addStringOption(option =>
-                    i18n_b(option, "content", "quotes$add$content_description")
-                        .setRequired(true)
+                .addMentionableOption(option =>
+                    i18n_b(option, "mention", "quotes$add$mention_description")
                     )
+                .addAttachmentOption(option =>
+                    i18n_b(option, "attachment", "quotes$add$attachment_description"))
             )
         .addSubcommand(subcommand =>
             i18n_b(subcommand, "edit", "quotes$edit_description")
@@ -24,10 +25,11 @@ export const command:CommandMethodsType = {
                         .setRequired(true)
                         .setAutocomplete(true)
                     )
-                .addStringOption(option =>
-                    i18n_b(option, "content", "quotes$edit$content_description")
-                        .setRequired(true)
-                    )
+                    .addMentionableOption(option =>
+                        i18n_b(option, "mention", "quotes$edit$mention_description")
+                        )
+                    .addAttachmentOption(option =>
+                        i18n_b(option, "attachment", "quotes$edit$attachment_description"))
             )
         .addSubcommand(subcommand =>
             i18n_b(subcommand, "remove", "quotes$remove_description")
@@ -44,39 +46,47 @@ export const command:CommandMethodsType = {
     },
     async execute(interaction) {
         if (!interaction.isChatInputCommand()) return;
-        await interaction.deferReply();
         const i18n = this.muppetsClient.i18n;
         const charService = this.muppetsClient.characterService;
         const subcommand = interaction.options.getSubcommand(true);
         const charName = interaction.options.getString("character", true);
+        const mention = interaction.options.getMentionable("mention");
+        const attachment = interaction.options.getAttachment("attachment")||undefined;
         if (subcommand ==="add") {
-            const quote = interaction.options.getString("content", true);
-            await charService.addQuote(charName, quote);
-            await interaction.editReply({content:i18n("quoteAdded_log")});
+            await this.muppetsClient.createContentForm(interaction,
+                async (submission, textInput) => {
+                    await submission.deferReply();
+                    let content:string = textInput;
+                    if (mention) content+="\n"+mention.toString();
+                    await this.muppetsClient.characterService.addQuote(charName, content, attachment);
+                    await submission.editReply({content:i18n("quoteAdded_log")});
+                });
         } else if (subcommand==="edit") {
-            const new_quote = interaction.options.getString("content", true);
             const reply = await this.muppetsClient.AddQuoteSelector(
-                charName, false, 'selectQuoteToEdit');
-            const msg = await interaction.editReply(reply);
+                charName, 'selectQuoteToEdit');
+            const msg = await interaction.reply(reply);
             if (reply.components) {
                 //There's at least one quote to be selected
                 msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
                     .on('collect', async i => {
                         if (i.customId!=='selectQuoteToEdit') return;
-                        await i.deferUpdate();
                         const selectedQuoteId = +i.values[0];
-                        await charService.editQuote(selectedQuoteId, new_quote);
-                        await i.editReply({
-                            content:i18n("quoteEdited_log", {charName:charName}),
-                            components:[]
-                        });
+                        await this.muppetsClient.createContentForm(i,
+                            async (submission, textInput) => {
+                                if (!submission.isFromMessage()) return;
+                                await submission.deferUpdate();
+                                let content:string = textInput;
+                                if (mention) content+="\n"+mention.toString();
+                                await this.muppetsClient.characterService.editQuote(selectedQuoteId, content, attachment);
+                                await submission.editReply({content:i18n("quoteEdited_log", {charName:charName}), components:[]});
+                            });
                     }
                 )
             }
         } else if (subcommand==="remove") {
             const reply = await this.muppetsClient.AddQuoteSelector(
-                charName, false, 'selectQuoteToDelete');
-            const msg = await interaction.editReply(reply);
+                charName, 'selectQuoteToDelete');
+            const msg = await interaction.reply(reply);
             if (reply.components) {
                 msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
                     .on('collect', async i => {

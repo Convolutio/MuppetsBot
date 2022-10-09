@@ -1,5 +1,5 @@
-import { ActionRowBuilder, ApplicationCommandType, ContextMenuCommandBuilder, ModalActionRowComponentBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import { createContentForm } from "../classes/contentForm";
+import { ApplicationCommandType, ContextMenuCommandBuilder } from "discord.js";
+
 import { get_locales } from "../i18n/i18n";
 import { CommandMethodsType } from "../models/command.type";
 
@@ -15,8 +15,7 @@ export const command:CommandMethodsType = {
         const target = interaction.targetMessage;
         try {
             const whk = await interaction.client.fetchWebhook(target.author.id);
-            await createContentForm(interaction,
-                `Edit ${target.author.username}'s message`,
+            await this.muppetsClient.createContentForm(interaction,
                 async (submission, textInput) => {
                     await whk.editMessage(target.id, textInput);
                     await submission.reply({content:"Message edited !", ephemeral:true});

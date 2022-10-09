@@ -13,7 +13,7 @@ function selector(customId:string, placeholder:string, ...options:{label:string,
 }
 
 const to_export = {
-    async AddQuoteSelector(this:MuppetsClient, charName:string, returnQuote:boolean,
+    async AddQuoteSelector(this:MuppetsClient, charName:string,
             customId:string):Promise<{content:string, components?:any[]}> {
         /*Reply _again_ to the interaction with inviting user to select a character's quote in the selector
         which will be created. The callback argument will be executed when a value of the
@@ -32,7 +32,7 @@ const to_export = {
                     const label:string=quote.length>50?quote.slice(0,47)+'...':quote; 
                     return {
                         label:label,
-                        value:returnQuote?quote:quote_obj.id.toString()
+                        value:quote_obj.id.toString()
                     }
                 }
             ))];

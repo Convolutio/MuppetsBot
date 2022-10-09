@@ -9,6 +9,7 @@ import {TFunction} from 'i18next';
 import { i18n_build, i18n } from "./i18n/i18n";
 import { DISCORD_LANGUAGE } from "./models/translation.type";
 import { setTimeout } from "node:timers/promises";
+import { createContentForm } from "./classes/contentForm";
 export class MuppetsClient {
     private MAX_USAGE = 5;
     private TIME_BEFORE_FREE_USAGE = 12*3600*1000;
@@ -85,7 +86,7 @@ export class MuppetsClient {
 
     async initCommandsCollection():Promise<void> {
         const commands = new Collection<string, CommandType>();
-        await this.deployCommands();
+        //await this.deployCommands();
         await Promise.all(this.getCommandsObjs().map(async command => {
             const name = (await command.buildData()).name;
             commands.set(name, command); 
@@ -157,4 +158,5 @@ export class MuppetsClient {
     public AddQuoteSelector = AddQuoteSelector;
     public characterAutocomplete = characterAutocomplete;
     public i18n_build = i18n_build;
+    public createContentForm = createContentForm;
 }

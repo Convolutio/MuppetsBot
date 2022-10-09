@@ -1,21 +1,23 @@
-import { ActionRowBuilder, ButtonInteraction, ContextMenuCommandInteraction,
-    ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import { ActionRowBuilder, ButtonInteraction, ChatInputCommandInteraction, ContextMenuCommandInteraction,
+    ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction, SelectMenuInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import { MuppetsClient } from "../muppets-client";
 
 export async function createContentForm(
-    interaction:ButtonInteraction|ContextMenuCommandInteraction,
-    title:string, callback:(inter:ModalSubmitInteraction, textInput:string)=>Promise<void>, placeholder?:string) {
+    this:MuppetsClient,
+    interaction:ChatInputCommandInteraction|SelectMenuInteraction|ButtonInteraction|ContextMenuCommandInteraction,
+    callback:(inter:ModalSubmitInteraction, textInput:string)=>Promise<void>, placeholder?:string) {
     /*Shows a modal to ask the custom content of a message or a new quote.
     Then executes the callback if the modal has been submitted.*/
     const modalId="newContentModal"+ Date.now().toString();
     const modal = new ModalBuilder()
-        .setTitle(title)
+        .setTitle(this.i18n('modalContentTitle'))
         .setCustomId(modalId)
         .addComponents(
         new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
             (() => {
                 const component = new TextInputBuilder()
                     .setCustomId("newContentInput")
-                    .setLabel("What is the new content of the message ?")
+                    .setLabel(this.i18n("modalContentDescription"))
                     .setStyle(TextInputStyle.Paragraph)
                     .setRequired(true)
                 if (placeholder) component.setValue(placeholder)
