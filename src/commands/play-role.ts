@@ -2,7 +2,6 @@ import { ActionRowBuilder, BufferResolvable, ButtonBuilder, ButtonStyle, Compone
 import { MyWebhook } from "../classes/webhook";
 import { CommandMethodsType } from "../models/command.type";
 import { setTimeout } from "node:timers/promises";
-import toBuffer from "blob-to-buffer";
 
 const TIME_TO_WAIT = 135000;
 
