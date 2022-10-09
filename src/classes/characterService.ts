@@ -42,12 +42,6 @@ export class CharacterService {
                     quote:res.quote,
                     id:+res.quote_id
                 }));
-        /*(await this.db.query<{quote:string, quote_id:number}>
-            (`SELECT quotes.quote, quotes.quote_id
-            FROM characters JOIN quotes ON characters.whkId = quotes.author_whkId
-            WHERE characters.whkId="${character.webhook_data.id}";`, {type:QueryTypes.SELECT}))
-            .map((value)=>({quote:value.quote, id:value.quote_id}));
-        */
         return character;
     };
     async getCharactersNames():Promise<string[]> {
@@ -73,11 +67,7 @@ export class CharacterService {
         }
     };
     async deleteQuote(quote_id:number){
-        await this.db.query(
-            `DELETE FROM quotes
-            WHERE quotes.quote_id=${quote_id};`,
-            {type:QueryTypes.DELETE}
-        );
+        await Quote.destroy({where:{quote_id:quote_id}});
     };
     async editQuote(quote_id:number, quote:string, attachment?:Attachment) {
         let buffer:ArrayBuffer|null=null;
@@ -111,24 +101,17 @@ export class CharacterService {
     };
     async deleteCharacter(characterName:string) {
         await this.checkCorrectCharName(characterName);
-        await this.db.query(
-            `DELETE FROM quotes
-            WHERE quotes.author_whkId=(SELECT whkId FROM characters
-                WHERE name="${characterName}");`,
-            {type:QueryTypes.DELETE}
+        const char = (await db_Character.findOne({
+            attributes:["whkId"], where:{name:characterName}})
         );
-        await this.db.query(
-            `DELETE FROM characters
-                WHERE name="${characterName}";`,
-            {type:QueryTypes.DELETE});
+        if (!char?.whkId) throw "Webhook id not found in the db";
+        await Quote.destroy({
+            where:{author_whkId:char.whkId}
+        })
+        await char.destroy();
     };
     async editCharacterName(whkId:string, newName:string) {
-        await this.db.query(
-            `UPDATE characters
-                SET name="${newName}"
-                WHERE whkId="${whkId}"`,
-            {type:QueryTypes.UPDATE}
-        );
+        await db_Character.update({name:newName}, {where:{whkId:whkId}});
     };
     async getQuote(quote_id:string):Promise<{quote:string, attachment:string|ArrayBuffer|null}> {
         const query = await Quote.findOne({
