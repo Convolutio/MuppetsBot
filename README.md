@@ -17,8 +17,6 @@ Your bot must have the following scopes in the guild :
   - Send Messages
 - `application.commands`
 
-First and foremost, run `npm install` in the repository's root directory.
-
 You must create in the repository's root directory a `config.json` file following this schema:
 
 ```json
@@ -48,13 +46,37 @@ cd ../..
 
 ## Run the BOT
 
-### ts-node
+### Run MuppetsBot features only
 
-If you want your bot to just use the commands in this repository, executing the `index.ts` will carry out the job :
+If you want your bot to just use the commands in this repository, executing the `index.ts` script will carry out the job :
+
+In the repository's root directory, first run these lines
 
 ```bash
-ts-node index.ts
+npm install
 ```
+
+Then, some scripts can be executed, according to the situation of your project.
+
+#### In Development
+  
+  ```bash
+  npm run build
+  npm run start
+  ```
+  
+  Or (if you don't want to build in js)
+  
+  ```bash
+  npm run dev
+  ```
+  
+#### In production
+
+  ```bash
+  npm run build
+  pm2 build/index.js
+  ```
 
 ### 🧩Incorporating these features in your bot
 
@@ -65,7 +87,7 @@ If you're developing your own typescript or javascript Discord Bot and want to a
 > ```bash
 > BotProject/
 >    main.ts
->    Muppets Bot/
+>    MuppetsBot/
 >       src/
 >          muppets-client.ts
 >          ...
@@ -73,7 +95,15 @@ If you're developing your own typescript or javascript Discord Bot and want to a
 >    ...
 > ```
 >
-> *Some compilation issues may occur in cause of `tsconfig` params. I haven't try to check that.*
+> Then you can install the dependencies by executing this line in the `BotProject/` folder.
+>
+> ```bash
+> npm install "./MuppetsBot"
+> cd MuppetsBot
+> npm run build
+> ```
+>
+> *The last line is useless in typescript, but some compilation issues may occur in this language in cause of `tsconfig` params. I haven't try to check that, but using in Javascript the built classes works.*
 >
 > Then, you must init the commands with this code and make them run like this, thanks to the `initCommandsCollection()` asynchronous method the `MuppetsClient` class provides :
 >
@@ -81,7 +111,7 @@ If you're developing your own typescript or javascript Discord Bot and want to a
 > //For instance, in the main.ts file
 > import { MuppetsClient } from './Muppets Bot/src/muppets-client';
 >
-> async () => {
+> (async () => {
 >    const muppetsClient = new MuppetsClient();
 >    await muppetsClient.initCommandsCollection();
 >    //You can here import your own commands
@@ -89,11 +119,32 @@ If you're developing your own typescript or javascript Discord Bot and want to a
 >       muppetsClient.treat(i);
 >       //Here you can execute your own commands in addition to the muppetsClient's ones
 >    });
-> }
+> })()
 > ```
-> The process in javascript is approximately the same.
-
-_Please be aware the commands are built and deployed (and even deployed again, sometimes) asynchronously, in addition to be executed in this way. Moreover, the collection contains all commands with an `AsyncBuiltCommand` type I've developed to cleanly use the `MuppetsClient` internal properties. This is why the internal code is quite far from the conventional Discord Bot js and ts programs and you should follow the instructions I've described above. The `MuppetClient` in the `muppet-client.ts` main file has therefore been designed to be easily used in any other Discord projects, like as an extension._
+>
+> The process in Javascript is approximately the same.
+>
+> ```js
+> const { Client, GatewayIntentBits, } = require("discord.js");
+> const { token, guildId } = require('./config.json');
+> const { MuppetsClient } = require('./MuppetsBot/build/muppets-client');
+>
+> const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+>
+> (async () => {
+>        //Initiating the MuppetClient commands Collection
+>        const muppetsClient = new MuppetsClient("fr");
+>        await muppetsClient.initCommandsCollection();
+>
+>        client.on('interactionCreate', async (i) => {
+>                //Treating MuppetsClient's commands (if there's one to be treated)
+>                muppetsClient.treat(i);
+>        });
+>        client.on('ready', async () => {
+>                console.log('Ready !')
+>        })
+> })()
+> ```
 
 ### Delete a command from the guild
 
@@ -105,7 +156,7 @@ This is a manual task (normally useless) which can be carried out by executing t
 
 All the commands names, descriptions, and options are translatable in other languages, according to the system language user has chosen for Discord.
 
-However, logging BOT messages' language must be set according to the guild where the BOT is. Therefore, to display another language than english for this kind of content, you must set up the language thanks to a `MuppetsClient` constructor's argument. There is also an asynchronous `changeLanguage` method to do that whenever it should be done (be free to call it for instance in a command changing your bot's language).
+However, the language of BOT's logging messages must be set according to the guild where the BOT is. Therefore, to display another language than english for this kind of content, you must set up the language thanks to a `MuppetsClient` constructor's argument. There is also an asynchronous `changeLanguage` method to do that whenever it should be done (be free to call it for instance in a command changing your bot's language).
 
 ```ts
 //if nothing is specified, English will be chosen
@@ -116,7 +167,7 @@ await muppetsClient.changeLanguage('en-US');
 
 ### 🇫🇷 🇺🇸 Supported languages
 
-Just french (`"fr"` option) and english (`"en-US"` option) is here supported, but adding other languages is quite easy :
+Just French (`"fr"` option) and English (`"en-US"` option) are here supported, but adding other languages is quite easy :
 
 1. In the repository's `/i18n` folder, duplicate the `/en` folder and rename it with the abbreviation of the language you want to add (this abbreviation must be among [the languages Discord supports](https://discord.com/developers/docs/reference#locales)).
 2. Then, overwrite each value of `translation.json` file with the sentences in the language to be added (I advise to be careful to keep interpolation in the sentences, if it is present).

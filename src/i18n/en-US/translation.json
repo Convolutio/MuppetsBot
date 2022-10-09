@@ -13,7 +13,7 @@
         "name":"name",
         "avatar_url":"avatar_url",
         "avatar_file":"avatar_file",
-        "play_description":"Make the selected character state the a pre-saved quote or a custom one (which can be saved).",
+        "play_description":"Make the selected character state a pre-saved quote or a custom one (which can be saved).",
         "happy-hour_description":"Enable/Disable the limit of 'play' command's usage.",
         "characters_description":"Add, edit or delete your characters.",
         "quotes_description":"Add, delete or edit some quotes for your characters.",

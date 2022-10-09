@@ -13,7 +13,7 @@
         "name":"nom",
         "avatar_url":"url_avatar",
         "avatar_file":"fichier_avatar",
-        "play_description":"Fait parler le personnage sélectionné avec une réplique pré-enregistrée ou bien customisable.",
+        "play_description":"Fait parler le personnage sélectionné avec un message enregistré ou personnalisé.",
         "happy-hour_description":"Active/Désactive la limite d'usage de la commande 'faire_parler'.",
         "characters_description":"Ajoutez, modifier ou supprimer vos personnages.",
         "quotes_description":"Ajoutez, supprimer ou modifier des répliques pour vos personnages.",
