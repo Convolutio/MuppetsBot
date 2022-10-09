@@ -1,7 +1,13 @@
-import { Sequelize } from "sequelize";
-import path from "node:path";
+//import { Sequelize } from "sequelize";
+//import path from "node:path";
+import {database} from "./../models/db_classes"
+
+(async () => {
+    await database.sync({force:true})
+})();
 
 //Run this command just once to initialized a `database.db` file in the repository's directory
+/*
 const db_path = path.join(__dirname, "../..", "database.db")
 const db = new Sequelize({
     dialect:'sqlite',
@@ -28,3 +34,4 @@ const db = new Sequelize({
         );`
     )
 })();
+*/

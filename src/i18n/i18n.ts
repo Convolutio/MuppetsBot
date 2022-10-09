@@ -28,7 +28,7 @@ i18next.init({
     resources: resources
 });
 
-function get_locales(key:i18nKey):Localizations {
+export function get_locales(key:i18nKey):Localizations {
     if (!resources) throw "error";
     const obj:Localizations = {};
     for(const language of availableLanguages) {

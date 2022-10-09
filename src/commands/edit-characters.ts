@@ -1,6 +1,6 @@
 import { Attachment, BufferResolvable, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { MyWebhook } from "../classes/webhook";
-import { AsyncBuiltCommandMethods } from "../models/command.type";
+import { CommandMethodsType } from "../models/command.type";
 
 function getAvatar(avatar_url:string|null, avatarAttachment:Attachment|null):BufferResolvable|undefined {
     let avatar:BufferResolvable|undefined;
@@ -11,8 +11,8 @@ function getAvatar(avatar_url:string|null, avatarAttachment:Attachment|null):Buf
     }
     return avatar;
 }
-export const command:AsyncBuiltCommandMethods = {
-    async buildData() {
+export const command:CommandMethodsType = {
+    buildData() {
         const i18n_b = this.muppetsClient.i18n_build;
         return i18n_b(
             new SlashCommandBuilder(),
@@ -68,7 +68,8 @@ export const command:AsyncBuiltCommandMethods = {
     async autocomplete(interaction) {
         this.muppetsClient.characterAutocomplete(interaction);
     },
-    async execute (interaction:ChatInputCommandInteraction){
+    async execute (interaction){
+        if (!interaction.isChatInputCommand()) return;
         const i18n = this.muppetsClient.i18n;
         const subcommand = interaction.options.getSubcommand(true);
         await interaction.deferReply({ephemeral:subcommand==="display"});

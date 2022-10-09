@@ -1,72 +1,20 @@
 import { Character } from "../models/character.type";
 import path from "node:path";
-import { Sequelize, Model, DataTypes, QueryTypes } from "sequelize";
+import { Sequelize, Model, DataTypes, QueryTypes, InferAttributes, InferCreationAttributes, CreationOptional, ForeignKey } from "sequelize";
 import { MuppetsClient } from "../muppets-client";
-
-class db_Character extends Model {
-    declare name:string;
-    declare whkId:string;
-    declare whkToken:string;
-};
-
-class db_Quotes extends Model {
-    declare quote:string;
-    declare author_whkId:string;
-}
-
+import { Attachment } from "discord.js";
+import axios from "axios";
+import { db_Character, database, Quote } from "../models/db_classes";
 export class CharacterService {
-    /*This class is used to fetch and put Character elements
+    /*
+    This class is used to fetch and put Character elements
     in the database.
-    Notes that just a single character can have a certain name,
-    making this property a primary key in the database and an
-    identifier for the character's fetching.
-    Notes also that all database errors will be display in the console
-    as they cannot be throw without stop all process.*/
-    private db!:Sequelize;
+    One character matches one webhook, then the webhook id is a primary key.
+    */
+    private db:Sequelize;
 
     constructor(private muppetClient:MuppetsClient) {
-        const db_path = path.join(__dirname, '../..', "database.db");
-        this.db = new Sequelize({
-            dialect:'sqlite',
-            storage:db_path,
-            logging:false,
-            host:'localhost'
-        });
-        
-        db_Character.init({
-            name:{
-                type:DataTypes.TEXT,
-                allowNull:false,
-                unique:true
-            },
-            whkID:{
-                type:DataTypes.STRING(30),
-                primaryKey:true
-            },
-            whkToken:{
-                type:DataTypes.STRING(200),
-                allowNull:false
-            }
-        },{sequelize:this.db, modelName:'characters'});
-
-        db_Quotes.init({
-            quote:{
-                type:DataTypes.TEXT,
-                allowNull:false
-            },
-            author_whkId:{
-                type:DataTypes.STRING(30),
-                allowNull:false,
-                references:{
-                    model:db_Character,
-                    key:'whkId'
-                }
-            },
-            quote_id: {
-                type:DataTypes.INTEGER,
-                primaryKey:true
-            }
-        }, {sequelize:this.db, modelName:'quotes'});
+        this.db = database;
     };
 
     private async checkCorrectCharName(name:string):Promise<db_Character> {
@@ -87,15 +35,17 @@ export class CharacterService {
                 token:data.whkToken
             }
         };
-        character.quotes = (await this.db.query<{quote:string, quote_id:number}>
-            (`SELECT quotes.quote, quotes.quote_id
-            FROM characters JOIN quotes ON characters.whkId = quotes.author_whkId
-            WHERE characters.whkId="${character.webhook_data.id}";`, {type:QueryTypes.SELECT}))
-            .map((value)=>({quote:value.quote, id:value.quote_id}));
+        character.quotes = (await Quote.findAll({
+            attributes:["quote", "quote_id"],
+            where:{author_whkId:character.webhook_data.id}}))
+                .map(res => ({
+                    quote:res.quote,
+                    id:+res.quote_id
+                }));
         return character;
     };
     async getCharactersNames():Promise<string[]> {
-        return (await this.db.query<{name:string}>(`SELECT name FROM characters`, {type:QueryTypes.SELECT}))
+        return (await db_Character.findAll({attributes:["name"]}))
             .map(value => value.name);
     };
     async getCharacterWithName(name:string): Promise<Character> {
@@ -103,29 +53,30 @@ export class CharacterService {
         return await this.buildCharacter(row);
     };
 
-    async addQuote(characterName:string, quote:string) {
+    async addQuote(characterName:string, quote:string, attachment?:Attachment, attachment_url?:string) {
         await this.checkCorrectCharName(characterName);
-        await this.db.query(
-            `INSERT INTO quotes (quote, author_whkId) VALUES
-            ("${quote}",
-            (SELECT whkId FROM characters WHERE name="${characterName}"));`,
-            {type:QueryTypes.INSERT}
-        );
+        const author_whkId = (await this.db.query<{whkId:string}>(
+            `SELECT whkId FROM characters WHERE name="${characterName}"`,
+            {type:QueryTypes.SELECT}))[0].whkId;
+        if (attachment) {
+            const res = await axios.get<ArrayBuffer>(attachment.url, {responseType:"arraybuffer"});
+            const buffer = res.data;
+            await Quote.create({quote:quote, author_whkId:author_whkId, attachment:buffer, attachment_url:attachment_url});
+        } else {
+            await Quote.create({quote:quote, author_whkId:author_whkId});
+        }
     };
     async deleteQuote(quote_id:number){
-        await this.db.query(
-            `DELETE FROM quotes
-            WHERE quotes.quote_id=${quote_id};`,
-            {type:QueryTypes.DELETE}
-        );
+        await Quote.destroy({where:{quote_id:quote_id}});
     };
-    async editQuote(quote_id:number, quote:string) {
-        await this.db.query(
-            `UPDATE quotes
-                SET quote='${quote}'
-                WHERE quote_id=${quote_id}`,
-            {type:QueryTypes.UPDATE}
-        );
+    async editQuote(quote_id:number, quote:string, attachment?:Attachment) {
+        let buffer:ArrayBuffer|null=null;
+        if (attachment) {
+            const res = await axios.get<ArrayBuffer>(attachment.url, {responseType:"arraybuffer"});
+            buffer = res.data;
+        }
+        await Quote.update({quote:quote, attachment:buffer, attachment_url:null},
+            {where:{quote_id:quote_id}});
     };
 
     async addCharacter(character:Character):Promise<void> {
@@ -142,33 +93,47 @@ export class CharacterService {
                     message:this.muppetClient.i18n('characterAlreadyExist_error', {charName:character.name})
                 }
             }
-            const data = [
-                character.name,
-                character.webhook_data.id,
-                character.webhook_data.token
-            ]
-            await this.db.query(`INSERT INTO characters VALUES(?, ?, ?)`, {replacements:data, type:QueryTypes.INSERT});
+            await db_Character.create({
+                name:character.name,
+                whkToken:character.webhook_data.token,
+                whkId:character.webhook_data.id});
         }
     };
     async deleteCharacter(characterName:string) {
         await this.checkCorrectCharName(characterName);
-        await this.db.query(
-            `DELETE FROM quotes
-            WHERE quotes.author_whkId=(SELECT whkId FROM characters
-                WHERE name="${characterName}");`,
-            {type:QueryTypes.DELETE}
+        const char = (await db_Character.findOne({
+            attributes:["whkId"], where:{name:characterName}})
         );
-        await this.db.query(
-            `DELETE FROM characters
-                WHERE name="${characterName}";`,
-            {type:QueryTypes.DELETE});
+        if (!char?.whkId) throw "Webhook id not found in the db";
+        await Quote.destroy({
+            where:{author_whkId:char.whkId}
+        })
+        await char.destroy();
     };
     async editCharacterName(whkId:string, newName:string) {
-        await this.db.query(
-            `UPDATE characters
-                SET name="${newName}"
-                WHERE whkId="${whkId}"`,
-            {type:QueryTypes.UPDATE}
-        );
+        await db_Character.update({name:newName}, {where:{whkId:whkId}});
     };
+    async getQuote(quote_id:string):Promise<{quote:string, attachment:string|ArrayBuffer|null}> {
+        const query = await Quote.findOne({
+            attributes:["quote", "attachment_url"],
+            where:{quote_id:quote_id}
+        });
+        if (!query) throw "Invalid quote id";
+        let quote = {
+            quote:query?.quote,
+            attachment:query?.attachment_url||null
+        }
+        if (!quote.attachment || (await axios.get(quote.attachment)).status!==200) {
+            if (quote.attachment) await Quote.update({attachment_url:null}, {where:{quote_id:quote_id}});
+            const a = (await Quote.findOne({
+                attributes:["attachment"],
+                where:{quote_id:quote_id}
+            }))?.attachment||null;
+            return {quote:query?.quote, attachment:a};
+        } else return quote;
+    }
+
+    async addAttachmentUrl(quote_id:string, attachment_url:string) {
+        await Quote.update({attachment_url:attachment_url},{where:{quote_id:quote_id}});
+    }
 }

@@ -1,5 +1,5 @@
-import { ActionRowBuilder, SelectMenuBuilder } from "@discordjs/builders";
-import { AutocompleteInteraction, ChatInputCommandInteraction, ComponentType, SelectMenuInteraction } from "discord.js";
+import { AutocompleteInteraction, ChatInputCommandInteraction, ComponentType,
+    SelectMenuInteraction, SelectMenuBuilder, ActionRowBuilder } from "discord.js";
 import { MuppetsClient } from "../muppets-client";
 
 function selector(customId:string, placeholder:string, ...options:{label:string, value:string}[]) {
@@ -13,17 +13,17 @@ function selector(customId:string, placeholder:string, ...options:{label:string,
 }
 
 const to_export = {
-    async AddQuoteSelector(this:MuppetsClient, charName:string, returnQuote:boolean,customId:string, interaction:ChatInputCommandInteraction,
-        callback:(interaction:SelectMenuInteraction)=>Promise<void>):Promise<void> {
+    async AddQuoteSelector(this:MuppetsClient, charName:string,
+            customId:string):Promise<{content:string, components?:any[]}> {
         /*Reply _again_ to the interaction with inviting user to select a character's quote in the selector
         which will be created. The callback argument will be executed when a value of the
         selector is submitted.
         I insist on the _again_ : please deferReply or reply your interaction before run this function.*/
         const quotes = (await this.characterService.getCharacterWithName(charName)).quotes||[];
         if (quotes.length==0) {
-            await interaction.editReply({
+            return {
                 content:this.i18n("noSavedQuote_error", {charName:charName})
-            });
+            };
         } else {
             const rows = [selector(
                 customId, this.i18n("selectorPlaceholder"),...quotes.map(
@@ -32,19 +32,21 @@ const to_export = {
                     const label:string=quote.length>50?quote.slice(0,47)+'...':quote; 
                     return {
                         label:label,
-                        value:returnQuote?quote:quote_obj.id.toString()
+                        value:quote_obj.id.toString()
                     }
                 }
             ))];
-            const msg = await interaction.editReply({
+            return {
                 content:this.i18n("selectorMessage"),
                 components:rows,
-            });
+            };
+            /*
             msg.createMessageComponentCollector({componentType:ComponentType.SelectMenu, time:15000})
                 .on('collect', inter => {
                     if (inter.customId!==customId) return ;
                     callback(inter);
                 });
+            */
         }
     },
     async characterAutocomplete(this:MuppetsClient, interaction:AutocompleteInteraction):Promise<void> {

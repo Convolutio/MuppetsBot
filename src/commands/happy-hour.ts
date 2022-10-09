@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from "discord.js";
-import { AsyncBuiltCommandMethods } from "../models/command.type";
+import { CommandMethodsType } from "../models/command.type";
 
-export const command:AsyncBuiltCommandMethods = {
-    async buildData() {
+export const command:CommandMethodsType = {
+    buildData() {
         return this.muppetsClient.i18n_build(
             new SlashCommandBuilder(),
             "happy-hour",
@@ -10,6 +10,7 @@ export const command:AsyncBuiltCommandMethods = {
         )
     },
     async execute(interaction) {
+        if (!interaction.isChatInputCommand()) return;
         const happyHour=this.muppetsClient.setHappyHour();
         const message = happyHour
             ?"Welcome to the ***Happy Hour*** :partying_face:!"

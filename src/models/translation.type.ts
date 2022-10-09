@@ -10,7 +10,8 @@ const options = [
     "happy-hour",
     //commands args names
     "character",
-    "content",
+    "mention",
+    "attachment",
     "name",
     "avatar_url",
     "avatar_file",
@@ -28,7 +29,8 @@ const options = [
     "quotes$edit_description",
     //args description
     "play$character_description",
-    "play$content_description",
+    "play$mention_description",
+    "play$attachment_description",
     "characters$display$character_description",
     "characters$add$name_description",
     "characters$add$avatarURL_description",
@@ -39,9 +41,11 @@ const options = [
     "characters$edit$avatarFile_description",
     "characters$remove$character_description",
     "quotes$add$character_description",
-    "quotes$add$content_description",
+    "quotes$add$mention_description",
+    "quotes$add$attachment_description",
     "quotes$edit$character_description",
-    "quotes$edit$content_description",
+    "quotes$edit$mention_description",
+    "quotes$edit$attachment_description",
     "quotes$remove$character_description",
     //UI's logs
     "done",
@@ -56,10 +60,15 @@ const options = [
     "quoteAdded_log",
     "quoteRemoved_log",
     "quoteEdited_log",
+    "messageEdited_log",
     "usageLimit_error",
-    //Selector interface
+    //Components interface
     "selectorPlaceholder",
     "selectorMessage",
+    "buttonCustomize",
+    "buttonCustomizeAndSave",
+    "modalContentTitle",
+    "modalContentDescription"
 ] as const;
 export type i18nKey = typeof options[number];
 export type DISCORD_LANGUAGE = 'en-US' | 'en-GB' | 'bg' | 'zh-CN' | 'zh-TW' | 'hr' | 'cs' | 'da' | 'nl' | 'fi' | 'fr' | 'de' | 'el' | 'hi' | 'hu' | 'it' | 'ja' | 'ko' | 'lt' | 'no' | 'pl' | 'pt-BR' | 'ro' | 'ru' | 'es-ES' | 'sv-SE' | 'th' | 'tr' | 'uk' | 'vi';
