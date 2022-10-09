@@ -45,11 +45,11 @@ export const command:CommandMethodsType = {
         .addComponents(
             new ButtonBuilder()
                 .setCustomId("customButton")
-                .setLabel("Customize")
+                .setLabel(this.muppetsClient.i18n("buttonCustomize"))
                 .setStyle(ButtonStyle.Primary),
             new ButtonBuilder()
                 .setCustomId("customAndSaveButton")
-                .setLabel("Customize and Save")
+                .setLabel(this.muppetsClient.i18n("buttonCustomizeAndSave"))
                 .setStyle(ButtonStyle.Success)
         );
         const reply = await this.muppetsClient.AddQuoteSelector(

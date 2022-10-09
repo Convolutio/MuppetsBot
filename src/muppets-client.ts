@@ -86,7 +86,7 @@ export class MuppetsClient {
 
     async initCommandsCollection():Promise<void> {
         const commands = new Collection<string, CommandType>();
-        //await this.deployCommands();
+        await this.deployCommands();
         await Promise.all(this.getCommandsObjs().map(async command => {
             const name = (await command.buildData()).name;
             commands.set(name, command); 
