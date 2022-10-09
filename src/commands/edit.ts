@@ -18,12 +18,11 @@ export const command:CommandMethodsType = {
             await this.muppetsClient.createContentForm(interaction,
                 async (submission, textInput) => {
                     await whk.editMessage(target.id, textInput);
-                    await submission.reply({content:"Message edited !", ephemeral:true});
+                    await submission.reply({content:this.muppetsClient.i18n("messageEdited_log"), ephemeral:true});
                 },
                 target.content);
         } catch(err:any) {
             console.error(err);
-            //await interaction.reply({content:"Nop", ephemeral:true});
         }
     }
 }

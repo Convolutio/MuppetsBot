@@ -54,6 +54,7 @@
         "quoteAdded_log":"La nouvelle réplique a été créée avec succès.",
         "quoteRemoved_log":":+1: La citation sélectionnée de **{{charName}}** a été supprimée avec succès.",
         "quoteEdited_log":":+1: La citation sélectionnée de **{{charName}}** a été éditée avec succès.",
+        "messageEdited_log":"Le message a été modifié avec succès.",
         "usageLimit_error":":octagonal_sign: Vous ne pouvez plus interagir avec ce type de commande jusqu'au {{date}}",
         "selectorPlaceholder":"Sélectionnez la réplique pré-enregistrée",
         "selectorMessage":"Veuillez sélectionner la réplique.",

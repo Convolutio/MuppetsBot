@@ -60,6 +60,7 @@ const options = [
     "quoteAdded_log",
     "quoteRemoved_log",
     "quoteEdited_log",
+    "messageEdited_log",
     "usageLimit_error",
     //Components interface
     "selectorPlaceholder",

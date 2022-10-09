@@ -55,6 +55,7 @@
         "quoteAdded_log":"The new quote has been successfully created.",
         "quoteRemoved_log":":+1: The selected quote of **{{charName}}** has been successfully deleted.",
         "quoteEdited_log":":+1: The selected quote of **{{charName}}** has been successfully edited:",
+        "messageEdited_log":"Message edited!",
         "usageLimit_error":":octagonal_sign: You cannot interact with this kind of command until on {{date}}",
         "selectorPlaceholder":"Please select the pre-saved line.",
         "selectorMessage":"Select the quote you want.",
